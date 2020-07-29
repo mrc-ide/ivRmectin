@@ -1,11 +1,42 @@
 Package: ivRmectin
 Type: Package
-Title: What the Package Does (Title Case)
+Title: ODE model of malaria transmission to assess impact of endectocides
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+  person("Hannah", "Slater", email = "hslater@path.org", role = c("aut", "cre")),
+  person("Charlie", "Whittaker", email = "charles.whittaker16@imperial.ac.uk", role = c("aut")),
+  person("OJ", "Watson", email = "o.watson15@imperial.ac.uk", role = c("aut"))
+  )
+Description: A deterministic version of the Imperial College Malaria Model, adapted to explore
+    the impact of novel endectocides on malaria transmission. Derived from the model developed
+    and presented in Slater et al., Journal of Infectious Diseases 2014 (https://academic.oup.com/jid/article/210/12/1972/2908666) and
+    Slater et al., Lancet Infectious Diseases, 2020 (https://www.thelancet.com/journals/laninf/article/PIIS1473-3099(19)30633-4/fulltext).
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    testthat,
+    covr,
+    readxl,
+    knitr,
+    rmarkdown
+RoxygenNote: 7.1.0
+Imports: 
+    odin (>= 1.0.5), 
+    dde (>= 1.0.2),
+    reshape2,
+    statmod,
+    stringi,
+    dplyr,
+    tidyr,
+    rlang,
+    magrittr,
+    purrr,
+    crayon,
+    methods,
+    ggplot2
+Depends: R (>= 3.5.0)
+VignetteBuilder: knitr
+Remotes:
+    mrc-ide/dde,
+    mrc-ide/odin,
