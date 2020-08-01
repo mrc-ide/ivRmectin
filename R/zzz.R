@@ -1,4 +1,4 @@
-##' @useDynLib apothecary
+##' @useDynLib ivRmectin
 ##' @importFrom odin odin
 ##' @importFrom dde difeq
 ##' @importFrom magrittr %>%
