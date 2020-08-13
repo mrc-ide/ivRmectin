@@ -131,7 +131,7 @@ res2 <- runfun(wh2)
 # Testing Plotting All Outputs
 par(mfrow = c(1, 3))
 
-# Clinical Incidence
+# Clinical Incidence 0-5 years, 0 to 59 months, 0-80 years
 plot(res0$t/365, res0$clin_inc0to5*1000*365, type = "l", ylab = "Annual incidence per 1,000", xlab = "Year",
      lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 1000), las = 1)
 lines(res1$t/365, res1$clin_inc0to5*1000*365, lwd = 3, col = cols[2])
@@ -144,7 +144,7 @@ plot(res0$t/365, res0$clin_inc0to80*1000*365, type = "l", ylab = "Annual inciden
      lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 1000), las = 1)
 lines(res1$t/365, res1$clin_inc0to80*1000*365, lwd = 3, col = cols[2])
 
-# Slide Prevalence
+# Slide Prevalence 0-5 years, 0 to 59 months, 0-80 years
 plot(res0$t/365, res0$slide_prev0to5, type = "l", ylab = "Slide prevalence (%)", xlab = "Year",
      lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 1), las = 1)
 lines(res1$t/365, res1$slide_prev0to5, lwd = 3, col = cols[2])
@@ -157,7 +157,7 @@ plot(res0$t/365, res0$slide_prev0to80, type = "l", ylab = "Slide prevalence (%)"
      lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 1), las = 1)
 lines(res1$t/365, res1$slide_prev0to80, lwd = 3, col = cols[2])
 
-# Deaths
+# Deaths 0-5 years, 0 to 59 months, 0-80 years
 plot(res0$t/365, res0$deaths_inc0to5*1000*365, type = "l", ylab = "Deaths", xlab = "Year",
      lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 1000), las = 1)
 lines(res1$t/365, res1$deaths_inc0to5*1000*365, lwd = 3, col = cols[2])
