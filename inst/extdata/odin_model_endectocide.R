@@ -587,24 +587,55 @@ output(Aout) <- sum(A[,,])
 output(Uout) <- sum(U[,,])
 output(Pout) <- sum(P[,,])
 
-# Outputs for clinical incidence and prevalence on a given day
+# Outputs for clinical incidence, prevalence and deaths on a given day
+
 # population densities for each age category
 den[] <- user()
 dim(den) <- na
-# index of the age vector above 59 months
-age59 <- user(integer=TRUE)
-# index of the age vector above 5 years
-age05 <- user(integer=TRUE)
+# index of the age vector for those aged up to and including 59 months
+age59 <- user(integer = TRUE)
+# index of the age vector for those aged up to and including 5 years (60 months)
+age05 <- user(integer = TRUE)
+
+# Slide prevalence
+dim(prev0to80) <- c(na,nh,num_int)
+prev0to80[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+output(slide_prev0to80) <- sum(prev0to80[,,])/sum(den)
+
+dim(prev0to5) <- c(age05, nh, num_int)
+prev0to5[1:age05,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+output(slide_prev0to5) <- sum(prev0to5[,,])/sum(den[1:age05])
 
 dim(prev0to59) <- c(age59,nh,num_int)
 prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
-output(prev) <- sum(prev0to59[,,])/sum(den[1:age59])
+output(slide_prev0to59) <- sum(prev0to59[,,])/sum(den[1:age59])
 
-# slide positivity in 0 -5 year age bracket
-dim(clin_inc0to5) <- c(age05,nh,num_int)
-clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
-output(inc05) <- sum(clin_inc0to5)/sum(den[1:age05])
-output(inc) <- sum(clin_inc[,,])
+# Clinical incidence
+dim(raw_clin_inc0to80) <- c(na,nh,num_int)
+raw_clin_inc0to80[,,] <- clin_inc[i,j,k]
+output(clin_inc0to80) <- sum(raw_clin_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_clin_inc0to5) <- c(age05,nh,num_int)
+raw_clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
+output(clin_inc0to5) <- sum(raw_clin_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_clin_inc0to59) <- c(age59,nh,num_int)
+raw_clin_inc0to59[1:age59,,] <- clin_inc[i,j,k]
+output(clin_inc0to59) <- sum(raw_clin_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
+
+# Deaths
+dim(raw_deaths_inc0to80) <- c(na,nh,num_int)
+raw_deaths_inc0to80[,,] <- rD*D[i,j,k]
+output(deaths_inc0to80) <- sum(raw_deaths_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_deaths_inc0to5) <- c(age05,nh,num_int)
+raw_deaths_inc0to5[1:age05,,] <- rD*D[i,j,k]
+output(deaths_inc0to5) <- sum(raw_deaths_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_deaths_inc0to59) <- c(age59,nh,num_int)
+raw_deaths_inc0to59[1:age59,,] <- rD*D[i,j,k]
+output(deaths_inc0to59) <- sum(raw_deaths_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
+
 
 # Param checking outputs
 output(mu) <- mu
