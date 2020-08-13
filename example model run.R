@@ -8,16 +8,19 @@ init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
 init_EIR <- 10
 
 # Provide the length of time (in days) that you want to run the model for
-time_period <- 365 * 10 # means 10 years
+time_period <- 365 * 10 # run model for 10 years
 
 # Sourcing the extra functions required to generate the endectocide specific parameters
 source("R/mda_ivm_functions.R")
+
+# Load ivermectin hazardd
+ivm_haz <- read.table("data/ivermectin_hazards.txt", header=TRUE)
 
 # Running the ivm_fun function to generate the extra endectocide specific parameters that
 # you have to pass to the model
 ivm_parms0 = ivm_fun(IVM_start_times = 10000,  # time endectocide delivery occurs
                      time_period = time_period, # time period for the model to run over
-                     hazard_profile = rep(2, 10), # dummy hazard profile - must be vector
+                     hazard_profile = ivm_haz$d400[1:23], # dummy hazard profile - must be vector
                      ivm_coverage = 0.8, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
@@ -128,6 +131,28 @@ res0 <- runfun(wh0)
 res1 <- runfun(wh1)
 res2 <- runfun(wh2)
 
+# Plotting the results
+cols <- c("grey40", "deeppink2", "deepskyblue3")
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+
+# Clinical Incidence
+plot(res0$t/365, res0$clin_inc0to80*1000*365, type = "l", ylab = "Annual incidence per 1,000", xlab = "Year",
+     lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 800), las = 1)
+lines(res1$t/365, res1$clin_inc0to80*1000*365, lwd = 3, col = cols[2])
+lines(res2$t/365, res2$clin_inc0to80*1000*365, lwd = 3, col = cols[3])
+arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 20, length = 0.15, lwd = 3, col = "goldenrod2")
+
+legend("topright", c("No endectocide", "10 day endectocide with HR=2", "28 day endectocide with HR=2"),
+       col = cols, lwd=3, bty="n", cex=0.8)
+
+# Slide Prevalence
+plot(res0$t/365, res0$slide_prev0to80*100, type="l", ylab="Slide prevalence (%)", xlab="Year", lwd=3, col=cols[1],
+     xlim = c(5.7, 8), ylim = c(0, 30), las=1)
+lines(res1$t/365, res1$slide_prev0to80*100, lwd=3, col=cols[2])
+lines(res2$t/365, res2$slide_prev0to80*100, lwd=3, col=cols[3])
+arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 1, length=0.15, lwd=3, col="goldenrod2")
+
+
 # Testing Plotting All Outputs
 par(mfrow = c(1, 3))
 
@@ -171,24 +196,4 @@ plot(res0$t/365, res0$deaths_inc0to80*1000*365, type = "l", ylab = "Deaths", xla
 lines(res1$t/365, res1$deaths_inc0to80*1000*365, lwd = 3, col = cols[2])
 
 
-# Plotting the results
-cols <- c("grey40", "deeppink2", "deepskyblue3")
-par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
-
-# Clinical Incidence
-plot(res0$t/365, res0$clin_inc0to80*1000*365, type = "l", ylab = "Annual incidence per 1,000", xlab = "Year",
-     lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 800), las = 1)
-lines(res1$t/365, res1$clin_inc0to80*1000*365, lwd = 3, col = cols[2])
-lines(res2$t/365, res2$clin_inc0to80*1000*365, lwd = 3, col = cols[3])
-arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 20, length = 0.15, lwd = 3, col = "goldenrod2")
-
-legend("topright", c("No endectocide", "10 day endectocide with HR=2", "28 day endectocide with HR=2"),
-       col = cols, lwd=3, bty="n", cex=0.8)
-
-# Slide Prevalence
-plot(res0$t/365, res0$slide_prev0to80*100, type="l", ylab="Slide prevalence (%)", xlab="Year", lwd=3, col=cols[1],
-     xlim = c(5.7, 8), ylim = c(0, 30), las=1)
-lines(res1$t/365, res1$slide_prev0to80*100, lwd=3, col=cols[2])
-lines(res2$t/365, res2$slide_prev0to80*100, lwd=3, col=cols[3])
-arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 1, length=0.15, lwd=3, col="goldenrod2")
 
