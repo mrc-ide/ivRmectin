@@ -13,13 +13,11 @@
 #' @param rT Rate of leaving treatment. Default = 0.2
 #' @param rD Rate of leaving clinical disease. Default = 0.2
 #' @param rU Rate of recovering from subpatent infection. Default = 0.00906627
-#' @param rP Rate of leaving prophylaxis. Default = 1/14 (AL)
-#' @param rP_SP Rate of leaving prophylaxis. Default = 1/25 (SP)
-#' @param rP_DP Rate of leaving prophylaxis. Default = 1/30 (DP)
+#' @param rP Rate of leaving prophylaxis. Default = 0.06666667
 #' @param dE Latent period of human infection. Default = 12
 #' @param delayGam Lag from parasites to infectious gametocytes. Default = 12.5
 #' @param cD Untreated disease contribution to infectiousness. Default = 0.0676909
-#' @param cT Treated disease contribution to infectiousness. Default =   0.09434 * cD
+#' @param cT Treated disease contribution to infectiousness. Default =   0.322 * cD
 #' @param cU Subpatent disease contribution to infectiousness. Default = 0.006203
 #' @param gamma1 Parameter for infectiousness of state A. Default = 1.82425
 #' @param d1 Minimum probability due to maximum immunity. Default = 0.160527
@@ -51,13 +49,9 @@
 #' @param tau2 Duration of mosquito resting after feed. Default = 2.31
 #' @param mu0 Daily mortality of adult mosquitos. Default = 0.132
 #' @param Q0 Anthrophagy probability. Default = 0.92
-#' @param Q0_new new Q0 value if behaviour change
-#' @param net_switch_time time at which new net values comes in to effect
 #' @param chi Endophily probability. Default = 0.86
 #' @param bites_Bed Percentage of bites indoors and in bed. Default = 0.89
-#' @param bites_Bed_new Percentage of bites indoors and in bed. Default = 0.89
 #' @param bites_Indoors Percentage of bites indoors . Default = 0.97
-#' @param bites_Indoors_new Percentage of bites indoors . Default = 0.97
 #' @param muEL Per capita daily mortality rate of early stage larvae (low density). Default = 0.0338
 #' @param muLL Per capita daily mortality rate of late stage larvae (low density). Default = 0.0348
 #' @param muPL Per capita daily mortality rate of pupae. Default = 0.249
@@ -68,7 +62,7 @@
 #' @param km Seasonal carrying capacity. Default = 11
 #' @param cm Seasonal birth rate. Default = 0.05
 #' @param betaL Number of eggs laid per day per mosquito. Default = 21.2
-#' @param num_int Number of possible interventions. Default = 4
+#' @param num_int Number of intervention parameters.  Default = 4
 #' @param itn_cov The proportion of people that use an ITN. Default = 0
 #' @param irs_cov The proportion of people living in houses that have been sprayed. Default = 0
 #' @param ITN_IRS_on Time of ITN and IRS to be activated. Default = -1, i.e. never.
@@ -82,7 +76,7 @@
 #' @param itn_half_life ITN half life. Default =   2.64 * DY
 #' @param IRS_interval How long before IRS is repeated, i.e. when IRS decay = 1. Default =   1 * DY
 #' @param ITN_interval How long before ITN is repeated, i.e. when IRS decay = 1.  Default =   3 * DY
-#' @param feedback if new mosquitoes born is density dependent (1) or not (0)
+#' @param ... Any other parameters needed for non-standard model. If they share the same name
 #' as any of the defined parameters \code{model_param_list_create} will stop. You can either write
 #' any extra parameters you like individually, e.g. model_param_list_create(extra1 = 1, extra2 = 2)
 #' and these parameteres will appear appended to the returned list, or you can pass explicitly
@@ -93,25 +87,23 @@
 
 model_param_list_create <- function(
   # age, heterogeneity in exposure,
-  eta = 0.0001305,
+  eta = 1/(21*365),
   rho = 0.85,
   a0 = 2920,
   sigma2 = 1.67,
   max_age = 100*365,
   #  rate of leaving infection states
-  rA = 0.00512821,
+  rA = 1/195,
   rT = 0.2,
   rD = 0.2,
-  rU = 0.00906627,
-  rP = 1/14,
-  rP_SP = 1/25,
-  rP_DP = 1/30,
+  rU = 1/110.299,
+  rP = 1/15,
   #  human latent period and time lag from asexual parasites to
   dE  = 12,
   delayGam = 12.5,
   # human infectiousness to mosquitoes
   cD  = 0.0676909,
-  cT  =  0.05094 * cD,
+  cT  =  0.322 * cD,
   cU  = 0.006203,
   gamma1  = 1.82425,
   #  Immunity reducing probability of detection
@@ -147,13 +139,9 @@ model_param_list_create <- function(
   tau2 = 2.31,
   mu0 = 0.132,
   Q0 = 0.92,
-  Q0_new = 0.92,
-  net_switch_time = -1,
   chi = 0.86,
   bites_Bed = 0.89,
   bites_Indoors = 0.97,
-  bites_Bed_new = 0.89,
-  bites_Indoors_new = 0.97,
   # larval parameters daily density dependent mortality rate of egg
   muEL = 0.0338,
   muLL = 0.0348,
@@ -166,7 +154,7 @@ model_param_list_create <- function(
   cm = 0.05,
   betaL = 21.2,
   # intervention parameters
-  num_int = 4,
+  num_int = 1,
   itn_cov = 0,
   irs_cov = 0,
   ITN_IRS_on = -1,
@@ -180,11 +168,9 @@ model_param_list_create <- function(
   itn_half_life =   2.64 * DY,
   IRS_interval =   1 * DY,
   ITN_interval =   3 * DY,
-  feedback = 1,
   ...
 
 ){
-
   # set up param list
   mp_list <- list()
 
@@ -192,7 +178,7 @@ model_param_list_create <- function(
   extra_param_list <- list(...)
   if(length(extra_param_list)>0){
     if(is.list(extra_param_list[[1]])){
-  extra_param_list <- extra_param_list[[1]]
+      extra_param_list <- extra_param_list[[1]]
     }
   }
 
@@ -214,13 +200,12 @@ model_param_list_create <- function(
   mp_list$rD <- rD
   mp_list$rU <- rU
   mp_list$rP <- rP
-  mp_list$rP_SP <- rP_SP
-  mp_list$rP_DP <- rP_DP
 
   # human latent period and time lag from asexual parasites to
   # infectiousness
   mp_list$dE <- dE
   mp_list$delayGam <- delayGam
+
   # infectiousness to mosquitoes
   mp_list$cD <- cD
   mp_list$cT <- cT
@@ -265,13 +250,9 @@ model_param_list_create <- function(
   mp_list$tau2 <- tau2
   mp_list$mu0 <- mu0
   mp_list$Q0 <- Q0
-  mp_list$Q0_new <- Q0_new
-  mp_list$net_switch_time <- net_switch_time
   mp_list$chi <- chi
   mp_list$bites_Bed <- bites_Bed
   mp_list$bites_Indoors <- bites_Indoors
-  mp_list$bites_Bed_new <- bites_Bed_new
-  mp_list$bites_Indoors_new <- bites_Indoors_new
   mp_list$fv0 <- 1 / (tau1 + tau2)
   mp_list$av0 <- Q0 * mp_list$fv0 # daily feeeding rate on humans
   mp_list$Surv0 <- exp(-mu0 * delayMos) # probability of surviving incubation period
@@ -292,17 +273,33 @@ model_param_list_create <- function(
   # {White et al. 2011 Parasites and Vectors}
   mp_list$eov <- betaL/mu0 * (exp(mu0/mp_list$fv0) - 1)
   mp_list$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
-  mp_list$lambda <- -0.5 * mp_list$b_lambda + sqrt(0.25 * mp_list$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mu0 * dLL * (1 + dPL * muPL)))
-  mp_list$feedback <- feedback
+  mp_list$lambda <- -0.5 * mp_list$b_lambda +
+    sqrt(0.25 * mp_list$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mu0 * dLL * (1 + dPL * muPL)))
 
   # ITN/IRS parameters
-  mp_list$num_int <- num_int
   mp_list$itn_cov <- itn_cov
   mp_list$irs_cov <- irs_cov
+
+  mp_list$num_int <- num_int
+  # Catch all: Not defined the correct number of interventions
+  if (itn_cov > 0 & num_int == 1){
+    stop(message("Incorrect number of interventions for definied ITN coverage. Please ensure you have correctly
+                 specified the number of interventions."))
+  }
+  if (irs_cov > 0 & num_int < 3){
+    stop(message("Incorrect number of interventions for definied IRS coverage. Please ensure you have correctly
+                 specified the number of interventions."))
+  }
+
+  # Sets start time of coverage
   mp_list$ITN_IRS_on <- ITN_IRS_on
 
+  # Sets population split as coverage
   # {No intervention} {ITN only} {IRS only} {Both ITN and IRS}
-  mp_list$cov <- c((1 - itn_cov) * (1 - irs_cov), itn_cov * (1 - irs_cov), (1 - itn_cov) * irs_cov, itn_cov * irs_cov)
+  cov <- c((1 - itn_cov) * (1 - irs_cov), itn_cov * (1 - irs_cov), (1 - itn_cov) * irs_cov, itn_cov * irs_cov)
+  cov <- cov[1:mp_list$num_int]
+  mp_list$cov <- cov
+
   mp_list$d_ITN0 <- d_ITN0
   mp_list$r_ITN0 <- r_ITN0
   mp_list$r_ITN1 <- r_ITN1
@@ -312,19 +309,17 @@ model_param_list_create <- function(
   mp_list$itn_half_life <- itn_half_life
   mp_list$IRS_interval <- IRS_interval
   mp_list$ITN_interval <- ITN_interval
-  mp_list$irs_half_life <- 0.5 * mp_list$DY
-  mp_list$itn_half_life <- 2.64 * mp_list$DY
   mp_list$irs_loss <- log(2)/mp_list$irs_half_life
   mp_list$itn_loss <- log(2)/mp_list$itn_half_life
 
   # check that none of the spare parameters in the extra
   if(sum(!is.na(match(names(extra_param_list),names(mp_list))))!=0){
 
-   stop (message(cat("Extra params in ... share names with default param names. Please check:\n",
-              names(extra_param_list)[!is.na(match(names(extra_param_list),names(mp_list)))]
-             )
-         ))
+    stop (message(cat("Extra params in ... share names with default param names. Please check:\n",
+                      names(extra_param_list)[!is.na(match(names(extra_param_list),names(mp_list)))]
+    )
+    ))
   }
 
   return(append(mp_list,extra_param_list))
-}
+  }

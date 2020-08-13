@@ -11,7 +11,7 @@ Description: A deterministic version of the Imperial College Malaria Model, adap
     the impact of novel endectocides on malaria transmission. Derived from the model developed
     and presented in Slater et al., Journal of Infectious Diseases 2014 (https://academic.oup.com/jid/article/210/12/1972/2908666) and
     Slater et al., Lancet Infectious Diseases, 2020 (https://www.thelancet.com/journals/laninf/article/PIIS1473-3099(19)30633-4/fulltext).
-License: GPL-3
+License: 
 Encoding: UTF-8
 LazyData: true
 Suggests: 
