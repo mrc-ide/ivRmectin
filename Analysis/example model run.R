@@ -25,13 +25,16 @@ source("R/mda_ivm_functions.R")
 # Load ivermectin hazardd
 ivm_haz_1 <- read.table("data/ivermectin_hazards.txt", header=TRUE)
 ivm_haz_2 <- read.csv("data/sim_ave_HR.csv", header=TRUE)
-ivm_haz_2 = ivm_haz_2[ ,2:6]
+ivm_haz_3 <- read.csv("data/IVERMAL.csv", skipNul=TRUE)
 
 ivm_haz_1 = ivm_haz_1[1:28,]
 ivm_haz_2 = ivm_haz_2[1:28, ]
-ivm_haz=cbind(ivm_haz_1, ivm_haz_2)
+ivm_haz=cbind(ivm_haz_1, ivm_haz_2, ivm_haz_3)
 
-colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS","IVM_300_3_AT", "IVM_600_3_AT", "IVM_400_1_AT", "NTBC_1000_1_AT", "NTBC_1000_3_AT")
+View(ivm_haz_3)
+ivm_haz_2 = ivm_haz_2[,2:6]
+ivm_haz_3 = ivm_haz_3[ ,]
+colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS","IVM_300_3_AT", "IVM_600_3_AT", "IVM_400_1_AT", "NTBC_1000_1_AT", "NTBC_1000_3_AT", "IVM_300_3_MS", "IVM_600_3_MS")
 
 
 # Running the ivm_fun function to generate the extra endectocide specific parameters that
@@ -513,7 +516,7 @@ Inc_plot_Func_3 = function (eir, start1, start2, Country, Region,
     geom_line(data=res2, aes(x=time/30, y=clin_inc0to80*1000*365, linetype="2"), color="#c07142", size=0.2) +
 
     xlab (xlablabel) +
-    scale_x_continuous(expand = c(0,0), limits = c(-2,13), breaks=seq(-2,13,2)) +
+    scale_x_continuous(expand = c(0,0), limits = c(-2,24), breaks=seq(-2,24,2)) +
     scale_y_continuous(expand = c(0,0), limits = ylim1) +
     ylab(ylablabel)+
     scale_linetype_manual(values=c(1,1,2), labels = labels) +
@@ -531,7 +534,7 @@ Inc_plot_Func_3 = function (eir, start1, start2, Country, Region,
           axis.title.x = element_text(size=4, vjust = -2),
           legend.title = element_blank(),legend.spacing.y = unit(0.1, 'mm'),
           axis.line = element_line(colour = "black", size = 0.1),
-          legend.position = c(0.7,0.9),
+          legend.position = c(0.9,0.9),
           legend.background= element_rect(fill="white"),
           legend.text = element_text(size=3),
           plot.title = element_text(size=6, hjust=0.5), legend.key.height =unit(0.1, 'cm'),
@@ -651,7 +654,7 @@ Prev_plot_Func_2 = function (eir, start1, start2, Country, Region,
     geom_line(data=res2, aes(x=time/30, y=slide_prev0to80*100, linetype="2"), color="#c07142", size=0.2) +
 
     xlab ("Time since start of intervention (Months)") +
-    scale_x_continuous(expand = c(0,0), limits = c(-2,13), breaks=seq(-2,13,2)) +
+    scale_x_continuous(expand = c(0,0), limits = c(-2,24), breaks=seq(-2,24,2)) +
     scale_y_continuous(expand = c(0,0), limits = ylim2) +
     ylab(ylablabel)+
     scale_linetype_manual(values=c(1, 1), labels = labels) +
@@ -840,9 +843,9 @@ perennial_1 = Params_Func (eir=14, start1=c(3120, 3150, 3180), start2=c(3120, 31
 
 
 plot_1 = Inc_plot_Func_3 (eir=14, start1=c(3120, 3150, 3180), start2=c(3120, 3150, 3180), Country="Senegal", Region="Fatick",
-                         HR_sim0=ivm_haz$IVM_300_3_AT_3_HS[1:23], cov0=0.7, min0=5, max0=90,
-                         HR_sim1=ivm_haz$IVM_400_1_AT_1_HS[1:23], cov1=0.7, min1=5, max1=90,
-                         HR_sim2=ivm_haz$IVM_300_3_AT_3_HS[1:23], cov2=0.7, min2=5, max2=90,
+                         HR_sim0=ivm_haz$IVM_300_3_AT[1:23], cov0=0.7, min0=5, max0=90,
+                         HR_sim1=ivm_haz$IVM_300_3_HS[1:23], cov1=0.7, min1=5, max1=90,
+                         HR_sim2=ivm_haz$IVM_300_3_AT[1:23], cov2=0.7, min2=5, max2=90,
                          ylim1=c(0, 2300), ylim2=c(0,50), labels=c("IVM 1x400ug/kg (Slater et al)", "IVM 3x300ug/kg (Slater et al)", "Baseline malaria"),
                          Title= "Highly seasonal transmission", xlablabel="", ylablabel="Clinical incidence per 1,000 population")
 
@@ -1254,14 +1257,14 @@ View(df)
                            HR_sim0=ivm_haz$NTBC_1000_3_AT[1:28],cov0=0.7, min0=0, max0=90,
                            HR_sim1=ivm_haz$NTBC_1000_1_AT[1:28], cov1=0.7, min1=0, max1=90,
                            HR_sim2=ivm_haz$NTBC_1000_3_AT[1:28], cov2=0.7, min2=0, max2=90,
-                           ylim1=c(0, 2300), ylim2=c(0,50), labels=c("NTBC 1x1mg/kg", "NTBC 3x1mg/kg", "Baseline malaria"),
+                           ylim1=c(0, 2500), ylim2=c(0,50), labels=c("NTBC 1x1mg/kg", "NTBC 3x1mg/kg", "Baseline malaria"),
                            Title= "Highly seasonal transmission", xlablabel="", ylablabel="Clinical incidence per 1,000 population")
 
  plot_2 = Inc_plot_Func_3 (eir=14,   start1=c(3120, 3150, 3180), start2=c(3120, 3150, 3180), Country="Democratic Republic of the Congo", Region="Equateur",
                            HR_sim0=ivm_haz$NTBC_1000_3_AT[1:28],cov0=0.7, min0=0, max0=90,
                            HR_sim1=ivm_haz$NTBC_1000_1_AT[1:28], cov1=0.7, min1=0, max1=90,
                            HR_sim2=ivm_haz$NTBC_1000_3_AT[1:28], cov2=0.7, min2=0, max2=90,
-                           ylim1=c(0, 2300), ylim2=c(0,50), labels=c("NTBC 1x1mg/kg", "NTBC 3x1mg/kg", "Baseline malaria"),
+                           ylim1=c(0, 2500), ylim2=c(0,50), labels=c("NTBC 1x1mg/kg", "NTBC 3x1mg/kg", "Baseline malaria"),
                            Title= "Perennial  transmission",  xlablabel="", ylablabel="")
 
 
