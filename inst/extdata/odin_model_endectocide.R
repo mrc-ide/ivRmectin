@@ -365,9 +365,9 @@ IVRM_sr = interpolate(ttt, IVRM_start, "constant")
 
 deriv(Sv) =               betaa - mu*Sv - avhc*Sv
 
-deriv(Sv_F1) =            if (t >= (IVRM_sr -1)   && t < (IVRM_sr + eff_len))  (avhc-FOIv)*(1-ivm_cov)*Sv - avhc*Sv_F1 - mu*Sv_F1    else (avhc - FOIv)*Sv - avhc*Sv_F1 - mu*Sv_F1
+deriv(Sv_F1) =            if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  (avhc-FOIv)*(1-ivm_cov)*Sv - avhc*Sv_F1 - mu*Sv_F1    else (avhc - FOIv)*Sv - avhc*Sv_F1 - mu*Sv_F1
 
-deriv(Sv_F2) =           if (t >= (IVRM_sr -1)   && t < (IVRM_sr + eff_len)) (avhc - FOIv)*(1-ivm_cov)*Sv_F1 -(FOIv*(1-ivm_cov) + avhc*ivm_cov)*Sv_F2 - mu*Sv_F2     else   (avhc-FOIv)*Sv_F1 - FOIv*Sv_F2 - mu*Sv_F2
+deriv(Sv_F2) =           if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) (avhc - FOIv)*(1-ivm_cov)*Sv_F1 -(FOIv*(1-ivm_cov) + avhc*ivm_cov)*Sv_F2 - mu*Sv_F2     else   (avhc-FOIv)*Sv_F1 - FOIv*Sv_F2 - mu*Sv_F2
 
 deriv(Sx_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) ivm_cov*(avhc-FOIv)*Sv - avhc*Sx_F1[i] - mu_vi[i]*Sx_F1[i]     else - mu_vi[i]*Sx_F1[i] - avhc*Sx_F1[i]
 
@@ -375,14 +375,14 @@ deriv(Sx_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t 
 
 
 
-deriv(Ev_F1[1])  =           if (t >= (IVRM_sr  -1)   && t < (IVRM_sr + eff_len)) FOIv*(1-ivm_cov)*Sv  - mu*Ev_F1[i] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i]  else FOIv*Sv - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]
+deriv(Ev_F1[1])  =           if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) FOIv*(1-ivm_cov)*Sv  - mu*Ev_F1[i] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i]  else FOIv*Sv - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]
 
-deriv(Ev_F1[2:spor_len]) =   if (t >= (IVRM_sr -1 )   && t < (IVRM_sr + eff_len))  1/tau_v*Ev_F1[i-1] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]  else 1/tau_v*Ev_F1[i-1] - 1/tau_v*Ev_F1[i] - avhc*Ev_F1[i]- mu*Ev_F1[i]
+deriv(Ev_F1[2:spor_len]) =   if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  1/tau_v*Ev_F1[i-1] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]  else 1/tau_v*Ev_F1[i-1] - 1/tau_v*Ev_F1[i] - avhc*Ev_F1[i]- mu*Ev_F1[i]
 
 
-deriv(Ev_F2[1]) =            if (t >= (IVRM_sr -1 )   && t < (IVRM_sr + eff_len)) avhc*(1-ivm_cov)*Ev_F1[i] + (FOIv*(1-ivm_cov))*(Sv_F1+Sv_F2)  - mu*Ev_F2[i] - avhc*ivm_cov*Ev_F2[i] - 1/tau_v*Ev_F2[i]  else avhc*Ev_F1[i] + FOIv*(Sv_F1 + Sv_F2) - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]
+deriv(Ev_F2[1]) =            if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) avhc*(1-ivm_cov)*Ev_F1[i] + (FOIv*(1-ivm_cov))*(Sv_F1+Sv_F2)  - mu*Ev_F2[i] - avhc*ivm_cov*Ev_F2[i] - 1/tau_v*Ev_F2[i]  else avhc*Ev_F1[i] + FOIv*(Sv_F1 + Sv_F2) - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]
 
-deriv(Ev_F2[2:spor_len]) =   if (t >= (IVRM_sr  -1)   && t < (IVRM_sr + eff_len))  1/tau_v*Ev_F2[i-1] + avhc*(1-ivm_cov)*Ev_F1[i] - avhc*ivm_cov*Ev_F2[i] - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]   else 1/tau_v*Ev_F2[i-1] + avhc*Ev_F1[i] - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]
+deriv(Ev_F2[2:spor_len]) =   if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  1/tau_v*Ev_F2[i-1] + avhc*(1-ivm_cov)*Ev_F1[i] - avhc*ivm_cov*Ev_F2[i] - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]   else 1/tau_v*Ev_F2[i-1] + avhc*Ev_F1[i] - 1/tau_v*Ev_F2[i] - mu*Ev_F2[i]
 
 
 deriv(Ex_F1[1, 1:eff_len]) =            if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) FOIv*ivm_cov*Sv  - 1/tau_v*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j] - avhc*Ex_F1[i,j] else - 1/tau_v*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j]  - avhc*Ex_F1[i,j]
@@ -395,13 +395,13 @@ deriv(Ex_F2[1, 1:eff_len]) =            if (t >= (IVRM_sr + j -1)  &&  t < (IVRM
 deriv(Ex_F2[2:spor_len, 1:eff_len]) =   if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) 1/tau_v*Ex_F2[i-1,j] + avhc*ivm_cov*(Ev_F1[i] + Ev_F2[i]) + avhc*Ex_F1[i,j] -	1/tau_v*Ex_F2[i,j] - mu_vi[j]*Ex_F2[i,j]  else avhc*Ex_F1[i,j] + 1/tau_v*Ex_F2[i-1,j] - mu_vi[j]*Ex_F2[i,j]  -1/tau_v*Ex_F2[i,j]
 
 
-deriv(Iv_F1) =  if (t >= (IVRM_sr  -1)   && t < (IVRM_sr + eff_len)) 1/tau_v*Ev_F1[spor_len] - (mu + avhc)*Iv_F1     else  1/tau_v*Ev_F1[spor_len] -   (mu + avhc)*Iv_F1
+deriv(Iv_F1) =  if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) 1/tau_v*Ev_F1[spor_len] - (mu + avhc)*Iv_F1     else  1/tau_v*Ev_F1[spor_len] -   (mu + avhc)*Iv_F1
 
-deriv(Iv_F2) =  if (t >= (IVRM_sr -1 )   && t < (IVRM_sr + eff_len)) 1/tau_v*Ev_F2[spor_len] + avhc*(1-ivm_cov)*Iv_F1 - (mu + ivm_cov*avhc)*Iv_F2     else  1/tau_v*Ev_F2[spor_len] + avhc*Iv_F1 -  mu*Iv_F2
+deriv(Iv_F2) =  if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) 1/tau_v*Ev_F2[spor_len] + avhc*(1-ivm_cov)*Iv_F1 - (mu + ivm_cov*avhc)*Iv_F2     else  1/tau_v*Ev_F2[spor_len] + avhc*Iv_F1 -  mu*Iv_F2
 
-deriv(Ix_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i ) && t < (IVRM_sr + eff_len)) 1/tau_v*Ex_F1[spor_len,i] - (avhc + mu_vi[i])*Ix_F1[i]   else 1/tau_v*Ex_F1[spor_len,i] - (mu_vi[i] + avhc)*Ix_F1[i]
+deriv(Ix_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len)) 1/tau_v*Ex_F1[spor_len,i] - (avhc + mu_vi[i])*Ix_F1[i]   else 1/tau_v*Ex_F1[spor_len,i] - (mu_vi[i] + avhc)*Ix_F1[i]
 
-deriv(Ix_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i ) && t < (IVRM_sr + eff_len))  avhc*ivm_cov*(Iv_F1 + Iv_F2)  + 1/tau_v*Ex_F2[spor_len,i]  + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]  else 1/tau_v*Ex_F2[spor_len, i] + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]
+deriv(Ix_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len))  avhc*ivm_cov*(Iv_F1 + Iv_F2)  + 1/tau_v*Ex_F2[spor_len,i]  + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]  else 1/tau_v*Ex_F2[spor_len, i] + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]
 
 
 
@@ -653,3 +653,5 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
+
+output(IVRM_sr) <- IVRM_sr
