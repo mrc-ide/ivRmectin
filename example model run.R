@@ -51,8 +51,6 @@ runfun <- function(mod_name){
   return(op)
 }
 
-op1 <- runfun(wh)
-
 ###################################################################################################################
 #### run examples of the impact of ivermectin ####
 
@@ -68,9 +66,9 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
-                                  init_EIR = init_EIR,
-                                  country = NULL,
-                                  admin2 = NULL,
+                                  init_EIR = 14,
+                                  country = "Democratic Republic of the Congo",
+                                  admin2 = "Equateur",
                                   ttt = ivm_parms0$ttt,
                                   eff_len = ivm_parms0$eff_len,
                                   haz = ivm_parms0$haz,
@@ -80,9 +78,9 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   IVRM_start = ivm_parms0$IVRM_start)
 
 # ivermectin being delivered at 3 time points, with HR of 2, uniformly lasting for 10 days
-ivm_parms1 = ivm_fun(IVM_start_times = c(2190, 2250, 2310),
+ivm_parms1 = ivm_fun(IVM_start_times = c(2380), #, 2410, 2470), #c(2190, 2250, 2310),
                      time_period = time_period,
-                     hazard_profile = rep(2, 10),
+                     hazard_profile = rep(1, 10), #ivm_haz$d400[!is.na(ivm_haz$d400)],
                      ivm_coverage=0.8,
                      ivm_min_age=5,
                      ivm_max_age = 80)
@@ -91,9 +89,9 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
-                                  init_EIR = init_EIR,
-                                  country = NULL,
-                                  admin2 = NULL,
+                                  init_EIR = 14,
+                                  country = "Democratic Republic of the Congo",
+                                  admin2 = "Equateur",
                                   ttt = ivm_parms1$ttt,
                                   eff_len = ivm_parms1$eff_len,
                                   haz = ivm_parms1$haz,
@@ -103,9 +101,9 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   IVRM_start = ivm_parms1$IVRM_start)
 
 # ivermectin being delivered at 3 time points, with HR of 2, uniformly lasting for 28 days
-ivm_parms2 = ivm_fun(IVM_start_times = c(2190, 2250, 2310),
+ivm_parms2 = ivm_fun(IVM_start_times = c(2380), #, 2410, 2470), #c(2190, 2250, 2310),
                      time_period = time_period,
-                     hazard_profile = rep(2, 28),
+                     hazard_profile = rep(2, 10), #ivm_haz$d300[!is.na(ivm_haz$d300)],
                      ivm_coverage=0.8,
                      ivm_min_age=5,
                      ivm_max_age = 80)
@@ -114,9 +112,9 @@ wh2 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
-                                  init_EIR = init_EIR,
-                                  country = NULL,
-                                  admin2 = NULL,
+                                  init_EIR = 14,
+                                  country = "Democratic Republic of the Congo",
+                                  admin2 = "Equateur",
                                   ttt = ivm_parms2$ttt,
                                   eff_len = ivm_parms2$eff_len,
                                   haz = ivm_parms2$haz,
@@ -137,7 +135,7 @@ par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
 
 # Clinical Incidence
 plot(res0$t/365, res0$clin_inc0to80*1000*365, type = "l", ylab = "Annual incidence per 1,000", xlab = "Year",
-     lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, 800), las = 1)
+     lwd = 3, col = cols[1], xlim = c(5.7, 8), ylim = c(0, max(res0$clin_inc0to80*1000*365)), las = 1)
 lines(res1$t/365, res1$clin_inc0to80*1000*365, lwd = 3, col = cols[2])
 lines(res2$t/365, res2$clin_inc0to80*1000*365, lwd = 3, col = cols[3])
 arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 20, length = 0.15, lwd = 3, col = "goldenrod2")
@@ -147,7 +145,7 @@ legend("topright", c("No endectocide", "10 day endectocide with HR=2", "28 day e
 
 # Slide Prevalence
 plot(res0$t/365, res0$slide_prev0to80*100, type="l", ylab="Slide prevalence (%)", xlab="Year", lwd=3, col=cols[1],
-     xlim = c(5.7, 8), ylim = c(0, 30), las=1)
+     xlim = c(5.7, 8), ylim = c(0, max(res0$slide_prev0to80*100)), las=1)
 lines(res1$t/365, res1$slide_prev0to80*100, lwd=3, col=cols[2])
 lines(res2$t/365, res2$slide_prev0to80*100, lwd=3, col=cols[3])
 arrows(c(2190, 2250, 2310)/365, -50, c(2190, 2250, 2310)/365, 1, length=0.15, lwd=3, col="goldenrod2")
