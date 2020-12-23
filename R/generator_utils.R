@@ -41,7 +41,7 @@ create_r_model <- function(odin_model_path = system.file("extdata/odin_model.R",
 
   # create odin generator
   gen <- odin::odin(odin_model_path, verbose=FALSE)
-  state <- state[names(state) %in% names(formals(gen))]
+  state <- state#[names(state) %in% names(formals(gen))]
 
   # return mod
   return(list("state"=state,"generator"=gen,"mpl"=mpl))
