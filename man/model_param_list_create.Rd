@@ -5,22 +5,20 @@
 \title{Model Parameter List Creation}
 \usage{
 model_param_list_create(
-  eta = 0.0001305,
+  eta = 1/(21 * 365),
   rho = 0.85,
   a0 = 2920,
   sigma2 = 1.67,
   max_age = 100 * 365,
-  rA = 0.00512821,
+  rA = 1/195,
   rT = 0.2,
   rD = 0.2,
-  rU = 0.00906627,
-  rP = 1/14,
-  rP_SP = 1/25,
-  rP_DP = 1/30,
+  rU = 1/110.299,
+  rP = 1/15,
   dE = 12,
   delayGam = 12.5,
   cD = 0.0676909,
-  cT = 0.05094 * cD,
+  cT = 0.322 * cD,
   cU = 0.006203,
   gamma1 = 1.82425,
   d1 = 0.160527,
@@ -52,13 +50,9 @@ model_param_list_create(
   tau2 = 2.31,
   mu0 = 0.132,
   Q0 = 0.92,
-  Q0_new = 0.92,
-  net_switch_time = -1,
   chi = 0.86,
   bites_Bed = 0.89,
   bites_Indoors = 0.97,
-  bites_Bed_new = 0.89,
-  bites_Indoors_new = 0.97,
   muEL = 0.0338,
   muLL = 0.0348,
   muPL = 0.249,
@@ -69,7 +63,7 @@ model_param_list_create(
   km = 11,
   cm = 0.05,
   betaL = 21.2,
-  num_int = 4,
+  num_int = 1,
   itn_cov = 0,
   irs_cov = 0,
   ITN_IRS_on = -1,
@@ -83,7 +77,6 @@ model_param_list_create(
   itn_half_life = 2.64 * DY,
   IRS_interval = 1 * DY,
   ITN_interval = 3 * DY,
-  feedback = 1,
   ...
 )
 }
@@ -106,11 +99,7 @@ model_param_list_create(
 
 \item{rU}{Rate of recovering from subpatent infection. Default = 0.00906627}
 
-\item{rP}{Rate of leaving prophylaxis. Default = 1/14 (AL)}
-
-\item{rP_SP}{Rate of leaving prophylaxis. Default = 1/25 (SP)}
-
-\item{rP_DP}{Rate of leaving prophylaxis. Default = 1/30 (DP)}
+\item{rP}{Rate of leaving prophylaxis. Default = 0.06666667}
 
 \item{dE}{Latent period of human infection. Default = 12}
 
@@ -118,7 +107,7 @@ model_param_list_create(
 
 \item{cD}{Untreated disease contribution to infectiousness. Default = 0.0676909}
 
-\item{cT}{Treated disease contribution to infectiousness. Default =   0.09434 * cD}
+\item{cT}{Treated disease contribution to infectiousness. Default =   0.322 * cD}
 
 \item{cU}{Subpatent disease contribution to infectiousness. Default = 0.006203}
 
@@ -182,19 +171,11 @@ model_param_list_create(
 
 \item{Q0}{Anthrophagy probability. Default = 0.92}
 
-\item{Q0_new}{new Q0 value if behaviour change}
-
-\item{net_switch_time}{time at which new net values comes in to effect}
-
 \item{chi}{Endophily probability. Default = 0.86}
 
 \item{bites_Bed}{Percentage of bites indoors and in bed. Default = 0.89}
 
 \item{bites_Indoors}{Percentage of bites indoors . Default = 0.97}
-
-\item{bites_Bed_new}{Percentage of bites indoors and in bed. Default = 0.89}
-
-\item{bites_Indoors_new}{Percentage of bites indoors . Default = 0.97}
 
 \item{muEL}{Per capita daily mortality rate of early stage larvae (low density). Default = 0.0338}
 
@@ -216,7 +197,7 @@ model_param_list_create(
 
 \item{betaL}{Number of eggs laid per day per mosquito. Default = 21.2}
 
-\item{num_int}{Number of possible interventions. Default = 4}
+\item{num_int}{Number of intervention parameters.  Default = 4}
 
 \item{itn_cov}{The proportion of people that use an ITN. Default = 0}
 
@@ -244,7 +225,7 @@ model_param_list_create(
 
 \item{ITN_interval}{How long before ITN is repeated, i.e. when IRS decay = 1.  Default =   3 * DY}
 
-\item{feedback}{if new mosquitoes born is density dependent (1) or not (0)
+\item{...}{Any other parameters needed for non-standard model. If they share the same name
 as any of the defined parameters \code{model_param_list_create} will stop. You can either write
 any extra parameters you like individually, e.g. model_param_list_create(extra1 = 1, extra2 = 2)
 and these parameteres will appear appended to the returned list, or you can pass explicitly
