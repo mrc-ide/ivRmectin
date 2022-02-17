@@ -303,7 +303,7 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   }
 
 
-  admin_units_seasonal <- load_file("admin_units_seasonal.rds")
+  #admin_units_seasonal <- load_file("admin_units_seasonal.rds")
   admin_matches <- admin_match(admin_unit = admin_unit, country = country,
                                admin_units_seasonal = admin_units_seasonal)
 
