@@ -1,8 +1,7 @@
-
-
-############################################################################################################################
-# make a function that returns everthing you'd need for MDA/SMC
-############################################################################################################################
+#------------------------------------------------
+#' Function that returns parameters required for MDA
+#'
+#' @export
 
 mda_fun <- function(ncc = 2, MDA_times = NULL,MDA_grp_prop = 0.9, MDA_cov = 0.8, MDA_st_age = 0.5, MDA_en_age = 80, MDA_succ=0.95, MDA_drug_choice = 2){
 
@@ -31,9 +30,10 @@ mda_fun <- function(ncc = 2, MDA_times = NULL,MDA_grp_prop = 0.9, MDA_cov = 0.8,
 
 }
 
-############################################################################################################################
-# make a function that returns everything you'd need for ivermectin
-############################################################################################################################
+#------------------------------------------------
+#' Function that returns parameters required for Ivermectin simulation
+#'
+#' @export
 
 ivm_fun <- function(IVM_start_times, time_period, hazard_profile, ivm_coverage=0.8, ivm_min_age=5, ivm_max_age = 200, bites_per_3_days=1){
 
