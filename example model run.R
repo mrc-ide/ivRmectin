@@ -23,7 +23,7 @@ colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
 # Running the ivm_fun function to generate the extra endectocide specific parameters that you have to pass to the model
 ivm_parms <- ivm_fun(IVM_start_times = 10000,            # time endectocide delivery occurs
                      time_period = time_period,         # time period for the model to run over
-                     hazard_profile = ivm_haz$IVM_400_1_HS[1:23], # dummy hazard profile - must be vector (we'll change this later on)
+                     hazard_profile = ivm_haz$IVM_400_1_HS[1:23], # dummy hazard profile - must be vector (we'll change this later on). for 400 dosage
                      ivm_coverage = 0.8, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
@@ -57,9 +57,10 @@ runfun <- function(mod_name){
 ### The above code shows the workflow - the below code simulates the model and plots incidence and
 ### prevalence with and without ivermectin
 
-ivm_parms0 <- ivm_fun(IVM_start_times = 10000,
+#one scenario
+ivm_parms0 <- ivm_fun(IVM_start_times = 10000, #no ivermectin: turning ivermectin on out of bounds of the model run time (3650 days)
                       time_period = time_period,
-                      hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+                      hazard_profile = ivm_haz$IVM_300_3_HS[1:23], #select 300 dosage here
                       ivm_coverage=0.8,
                       ivm_min_age=5,
                       ivm_max_age = 90)
@@ -79,6 +80,7 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   ivm_max_age = ivm_parms0$ivm_max_age,
                                   IVRM_start = ivm_parms0$IVRM_start)
 
+#another scenario
 ivm_parms1 <- ivm_fun(IVM_start_times = c(3120, 3150, 3180),
                       time_period = time_period,
                       hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
