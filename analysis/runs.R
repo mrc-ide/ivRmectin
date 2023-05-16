@@ -4,7 +4,7 @@ devtools::load_all()
 library(ggplot2)
 library(gridExtra)
 library(RColorBrewer)
-
+library(tidyverse)
 # Create a vector of age categories for the model
 init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
 
@@ -12,7 +12,7 @@ init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
 init_EIR <- 3 #low - 2, moderate - 15, high - 120
 
 # Provide the length of time (in days) that you want to run the model for
-time_period <- 3650 # run model for 10 years
+time_period <- 5000 # run model for 10 years
 
 # Sourcing the extra functions required to generate the endectocidepecific parameters
 source("R/mda_ivm_functions.R")
@@ -31,7 +31,7 @@ ivm_parms <- ivm_fun(IVM_start_times = 10000,            # time endectocide deli
 
 # Creates the odin model with all the required parameters - it is then ready to run
 # Note this isn't the part where the model is actually run - that's below.
-wh <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
+wh <- ivRmectin::create_r_model(odin_model_path = "inst/odin/odin_model_endectocide.R",
                                 num_int = 4, # number of vector control (IRS and ITN) population groups
                                 het_brackets = 5, # number of heterogeneous biting categories
                                 age = init_age, # the different age classes to be ran within the model
@@ -66,7 +66,7 @@ ivm_parms0 <- ivm_fun(IVM_start_times = 10000, #no ivermectin: turning ivermecti
                       ivm_min_age=5,
                       ivm_max_age = 90)
 
-wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
+wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/odin/odin_model_endectocide.R",
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
@@ -127,3 +127,12 @@ arrows(c(3120, 3150, 3180)/365, -50, c(3120, 3150, 3180)/365, 1, length = 0.1, l
 
 legend("topright", c("No endectocide", "IVM endectocide"),
        col = cols, lwd=3, bty="n", cex=0.8)
+
+#plot total number of mosquitoes
+as.data.frame(res0) %>%
+  ggplot(aes(x = t, y = Sv))+
+  geom_point()
+
+as.data.frame(res1) %>%
+  ggplot(aes(x = t, y = Sv))+
+  geom_point()
