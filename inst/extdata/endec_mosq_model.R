@@ -54,7 +54,7 @@ initial(Ex_F1[,]) = 0
 initial(Ex_F1_dead[,]) = 0
 
 initial(Ex_F2[,]) = 0
-initial(Ex_f2_dead[,]) = 0
+initial(Ex_F2_dead[,]) = 0
 
 initial(Iv_F1) = init_Iv *mv0
 initial(Iv_F1_dead) = 0
@@ -70,15 +70,23 @@ initial(Ix_F2_dead[]) = 0
 
 
 dim(Sx_F1) = eff_len
+dim(Sx_F1_dead) = eff_len
 dim(Sx_F2) = eff_len
+dim(Sx_F2_dead) = eff_len
 dim(Ix_F1) = eff_len
+dim(Ix_F1_dead) = eff_len
 dim(Ix_F2) = eff_len
+dim(Ix_F2_dead) = eff_len
 
 dim(Ev_F1) = spor_len
+dim(Ev_F1_dead) = spor_len
 dim(Ev_F2) = spor_len
+dim(Ev_F2_dead) = spor_len
 
 dim(Ex_F1) = c(spor_len, eff_len)
+dim(Ex_F1_dead) = c(spor_len, eff_len)
 dim(Ex_F2) = c(spor_len, eff_len)
+dim(Ex_F2_dead) = c(spor_len, eff_len)
 
 ## user defined ivermectin age and coverage parameters (coverage = coverage of targeted age group)
 ivm_cov_par <- user()
@@ -140,16 +148,16 @@ dim(IVRM_start) <- length(ttt)
 IVRM_sr = interpolate(ttt, IVRM_start, "constant")
 
 deriv(Sv) =               betaa - mu*Sv - avhc*Sv
-deriv(Sv_dead) = mv*Sv
+deriv(Sv_dead) = mu*Sv
 
 deriv(Sv_F1) =            if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  (avhc-FOIv)*(1-ivm_cov)*Sv - avhc*Sv_F1 - mu*Sv_F1    else (avhc - FOIv)*Sv - avhc*Sv_F1 - mu*Sv_F1
 deriv(Sv_F1_dead) =  mu*Sv_F1
 
 deriv(Sv_F2) =           if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) (avhc - FOIv)*(1-ivm_cov)*Sv_F1 -(FOIv*(1-ivm_cov) + avhc*ivm_cov)*Sv_F2 - mu*Sv_F2     else   (avhc-FOIv)*Sv_F1 - FOIv*Sv_F2 - mu*Sv_F2
-deriv(Sv_F2_dead) mu*Sv_F2 else
+deriv(Sv_F2_dead) = mu*Sv_F2
 
 deriv(Sx_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) ivm_cov*(avhc-FOIv)*Sv - avhc*Sx_F1[i] - mu_vi[i]*Sx_F1[i]     else - mu_vi[i]*Sx_F1[i] - avhc*Sx_F1[i]
-deriv(Sx_F2_dead[1:eff_len]) =  mu_vi[i]*Sx_F1[i]
+deriv(Sx_F1_dead[1:eff_len]) =  mu_vi[i]*Sx_F1[i]
 
 
 deriv(Sx_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) ivm_cov*(avhc-FOIv)*(Sv_F1 + Sv_F2) + (avhc - FOIv)*Sx_F1[i] - FOIv*Sx_F2[i] - mu_vi[i]*Sx_F2[i]     else  (avhc- FOIv)*Sx_F1[i] - mu_vi[i]*Sx_F2[i] - FOIv*Sx_F2[i]
@@ -399,5 +407,6 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
+output(mv_dead) <- mv_dead
 
 output(IVRM_sr) <- IVRM_sr
