@@ -12,8 +12,8 @@ library(RColorBrewer)
 init_EIR <- 100 #low - 2, moderate - 15, high - 120
 
 # Provide the length of time (in days) that you want to run the model for
-time_period <- 3650 # run model for 10 years
-
+#time_period <- 3650 # run model for 10 years
+time_period <- 730
 # Sourcing the extra functions required to generate the endectocidepecific parameters
 source("R/mda_ivm_functions.R")
 
@@ -22,12 +22,13 @@ ivm_haz <- read.table("IVM_derivation/ivermectin_hazards.txt", header=TRUE)
 colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
 
 # Running the ivm_fun function to generate the extra endectocide specific parameters that you have to pass to the model
-ivm_parms <- ivm_fun(IVM_start_times = 10000,            # time endectocide delivery occurs
-                     time_period = time_period,         # time period for the model to run over
+ivm_parms <- ivm_fun(IVM_start_times = 10000,# time endectocide delivery occurs
+                      time_period = time_period,         # time period for the model to run over
                      hazard_profile = ivm_haz$IVM_300_3_HS[1:23], # dummy hazard profile - must be vector (we'll change this later on). for 400 dosage
                      ivm_coverage = 0.8, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
+ivm_parms$IVRM_start
 
 # Creates the odin model with all the required parameters - it is then ready to run
 # Note this isn't the part where the model is actually run - that's below.
@@ -71,8 +72,8 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
-                                  country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
-                                  admin2 = "Fatick",
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
                                   ttt = ivm_parms0$ttt,
                                   eff_len = ivm_parms0$eff_len,
                                   haz = ivm_parms0$haz,
@@ -82,8 +83,9 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   IVRM_start = ivm_parms0$IVRM_start)
 
 #another scenario
-ivm_parms1 <- ivm_fun(IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
-                      time_period = time_period,
+ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times = c(180, 210, 240),
+  time_period = time_period,
                       hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
                       ivm_coverage=0.8,
                       ivm_min_age=5,
@@ -93,8 +95,8 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
-                                  country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
-                                  admin2 = "Fatick",
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
                                   ttt = ivm_parms1$ttt,
                                   eff_len = ivm_parms1$eff_len,
                                   haz = ivm_parms1$haz,
@@ -130,7 +132,23 @@ par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
 #
 
 #plotting total number of mosquitoes
-plot(res0$t/365, res0$mv)
-points(res0$t/365, res1$mv, col = cols[2])
+plot(res0$t/365, res0$mv, ylim = c(0, 42), main = "Total mosquitoes")
+lines(res0$t/365, res1$mv, col = cols[2])
 
+plot(res0$t/365, res0$mv_dead, main = "Total dead mosquitoes")
+lines(res1$t/365, res1$mv_dead, col = cols[2])
 
+res0_df <- as.data.frame(res0) %>%
+  select(t, mv_dead, mv) %>%
+  mutate(model = "no IVM")
+
+res1_df <- as.data.frame(res1) %>%
+  select(t, mv_dead, mv) %>%
+  mutate(model = "with IVM")
+
+df <- rbind(res0_df, res1_df)
+
+ggplot(df, aes(x = t, y = mv_dead, col = as.factor(model)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(150, 400)
