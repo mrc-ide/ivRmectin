@@ -69,9 +69,9 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
-                                  init_EIR = 14,
-                                  country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
-                                  admin2 = "Fatick",
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
                                   ttt = ivm_parms0$ttt,
                                   eff_len = ivm_parms0$eff_len,
                                   haz = ivm_parms0$haz,
@@ -91,9 +91,9 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
                                   num_int = 2,
                                   het_brackets = 5,
                                   age = init_age,
-                                  init_EIR = 14,
-                                  country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
-                                  admin2 = "Fatick",
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
                                   ttt = ivm_parms1$ttt,
                                   eff_len = ivm_parms1$eff_len,
                                   haz = ivm_parms1$haz,
@@ -109,7 +109,7 @@ res1 <- runfun(wh1)
 
 # Plotting the results
 cols <- c("grey40", "deeppink2")
-par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+par(mfrow = c(1, 3), mar = c(5, 4, 1, 1))
 
 # Clinical Incidence
 plot(res0$t/365, res0$clin_inc0to80*1000*365, type = "l", ylab = "Annual incidence per 1,000", xlab = "Year",
@@ -126,3 +126,7 @@ arrows(c(3120, 3150, 3180)/365, -50, c(3120, 3150, 3180)/365, 1, length = 0.1, l
 
 legend("topright", c("No endectocide", "IVM endectocide"),
        col = cols, lwd=3, bty="n", cex=0.8)
+
+plot(res0$t/365, res0$mv, ylim = c(0, 42), xlim = c(7.5,10))
+lines(res0$t/365, res1$mv, col = cols[2])
+arrows(c(3120, 3150, 3180)/365, -50, c(3120, 3150, 3180)/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
