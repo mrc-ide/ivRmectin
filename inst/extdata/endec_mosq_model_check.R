@@ -21,7 +21,7 @@ dim(haz) = eff_len
 dim(mu_vi) = eff_len
 new_mu = user()
 mu_vi[1:eff_len] = haz[i]*new_mu
-#mu_vi[1:eff_len] = user()
+#mu_vi[1:eff_len] = haz[i]*mu
 
 spor_len = 10
 tau_v = spor_len/10
@@ -285,8 +285,8 @@ K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dL
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
 KL <- K0*theta2
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
-#mu <- -fv*log(p1*p2) # mosquito death rate
-mu <- new_mu
+mu <- -fv*log(p1*p2) # mosquito death rate
+#mu <- new_mu
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- user()
 initial(PL) <- init_PL
