@@ -27,7 +27,7 @@ ivm_parms3 <- ivm_fun(IVM_start_times = 180,# time endectocide delivery occurs
                      ivm_max_age = 90) # oldest age group receiving endectocide
 
 new_mu = 0.1897807
-
+#correctly settles at #28.92708
 wh3 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
                                 num_int = 3, # number of vector control (IRS and ITN) population groups
                                 #het_brackets = 5, # number of heterogeneous biting categories
@@ -42,7 +42,7 @@ wh3 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mode
                                 ivm_min_age = ivm_parms3$ivm_min_age, # youngest age group receiving endectocide
                                 ivm_max_age = ivm_parms3$ivm_max_age, # oldest age group receiving endectocide
                                 IVRM_start = ivm_parms3$IVRM_start,
-                                new_mu = 0.3) # model specific parameter to control timing of endectocide delivery
+                                new_mu = new_mu) # model specific parameter to control timing of endectocide delivery
 runfun <- function(mod_name){
   mod <- mod_name$generator(user= mod_name$state, use_dde = TRUE)
   modx <- mod$run(t = 1:time_period)
@@ -52,3 +52,4 @@ runfun <- function(mod_name){
 res3 <- runfun(wh3)
 res3$mu_vi
 plot(res3$t, res3$mv, ylim = c(0, 50))
+res3$mv
