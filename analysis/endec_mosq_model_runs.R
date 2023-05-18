@@ -20,11 +20,13 @@ source("R/mda_ivm_functions.R")
 # Load ivermectin hazard
 ivm_haz <- read.table("IVM_derivation/ivermectin_hazards.txt", header=TRUE)
 colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
+#hazzy <- rep(100, 23)
 
 # Running the ivm_fun function to generate the extra endectocide specific parameters that you have to pass to the model
 ivm_parms <- ivm_fun(IVM_start_times = 10000,# time endectocide delivery occurs
                       time_period = time_period,         # time period for the model to run over
                      hazard_profile = ivm_haz$IVM_300_3_HS[1:23], # dummy hazard profile - must be vector (we'll change this later on). for 400 dosage
+                     #hazard_profile = hazzy,
                      ivm_coverage = 0.8, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
@@ -63,6 +65,7 @@ runfun <- function(mod_name){
 ivm_parms0 <- ivm_fun(IVM_start_times = 10000, #no ivermectin: turning ivermectin on out of bounds of the model run time (3650 days)
                       time_period = time_period,
                       hazard_profile = ivm_haz$IVM_300_3_HS[1:23], #select 300 dosage here
+                      #hazard_profile = hazzy,
                       ivm_coverage=0.8,
                       ivm_min_age=5,
                       ivm_max_age = 90)
@@ -86,12 +89,13 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
 ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
   IVM_start_times = c(180, 210, 240),
   time_period = time_period,
-                      hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
-                      ivm_coverage=0.8,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8,
                       ivm_min_age=5,
                       ivm_max_age = 90)
 wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model.R",
-                                  num_int = 2,
+                                  num_int = 3,
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
@@ -134,21 +138,44 @@ par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
 #plotting total number of mosquitoes
 plot(res0$t/365, res0$mv, ylim = c(0, 42), main = "Total mosquitoes")
 lines(res0$t/365, res1$mv, col = cols[2])
+arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
+
 
 plot(res0$t/365, res0$mv_dead, main = "Total dead mosquitoes")
 lines(res1$t/365, res1$mv_dead, col = cols[2])
+arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
 
-res0_df <- as.data.frame(res0) %>%
-  select(t, mv_dead, mv) %>%
-  mutate(model = "no IVM")
 
-res1_df <- as.data.frame(res1) %>%
-  select(t, mv_dead, mv) %>%
-  mutate(model = "with IVM")
+plot(res0$t, res0$Sv_dead)
+points(res1$t, res1$Sv_dead, col = cols[2])
 
-df <- rbind(res0_df, res1_df)
 
-ggplot(df, aes(x = t, y = mv_dead, col = as.factor(model)))+
-  geom_line()+
-  theme_minimal()+
-  xlim(150, 400)
+plot(res0$t, res0$Sv_F1_dead, ylim = c(0, 2000), main = "Sv_F1")
+points(res0$t, res1$Sv_F1_dead, col = cols[2])
+
+plot(res0$t, res0$Sv_F2_dead, ylim = c(0, 2000), main = "Sv_F2")
+points(res0$t, res1$Sv_F2_dead, col = cols[2])
+
+
+plot(res0$t, res0$mv_dead)
+lines(res0$t, res1$mv_dead, col = cols[2])
+
+par(mfrow = c(2, 3))
+
+plot(res0$t, res0$Sx_tot, ylim = c(0, 20), main = "Sx_tot")
+lines(res1$t, res1$Sx_tot, col = cols[2])
+
+plot(res0$t, res0$Ex_tot, ylim = c(0, 20), main = "Ex_tot")
+lines(res1$t, res1$Ex_tot, col = cols[2])
+
+plot(res0$t, res0$Ix_tot, ylim = c(0, 20), main = "Ix_tot")
+lines(res1$t, res1$Ix_tot, col = cols[2])
+
+plot(res0$t, res0$Sx_dead, ylim = c(0, 300), main = "Sx_dead")
+lines(res0$t, res1$Sx_dead, col = cols[2])
+
+plot(res0$t, res0$Ex_dead, ylim = c(0, 300), main = "Ex_dead")
+lines(res0$t, res1$Ex_dead, col = cols[2])
+
+plot(res0$t, res0$Ix_dead, ylim = c(0, 300), main = "Ix_dead")
+lines(res0$t, res1$Ix_dead, col = cols[2])
