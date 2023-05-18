@@ -20,7 +20,6 @@ dim(haz) = eff_len
 
 dim(mu_vi) = eff_len
 mu_vi[1:eff_len] = haz[i]*mu
-
 spor_len = 10
 tau_v = spor_len/10
 
@@ -94,18 +93,31 @@ ivm_min_age <- user()
 ivm_max_age <- user()
 ivm_cov = ivm_cov_par*(exp(-ivm_min_age/21) - exp(-ivm_max_age/21))
 
-Ivtot = Iv_F1 + Iv_F2 + sum(Ix_F1) + sum(Ix_F2) #4
+Ivtot =       Iv_F1 +     Iv_F2 +      sum(Ix_F1) +      sum(Ix_F2) #4
 Ivtot_dead = Iv_F1_dead + Iv_F2_dead + sum(Ix_F1_dead) + sum(Ix_F2_dead) #4
 
-Evtot = sum(Ev_F1) + sum(Ev_F2) + sum(Ex_F1) + sum(Ex_F2) #4
+Evtot =      sum(Ev_F1) +      sum(Ev_F2) +      sum(Ex_F1) +      sum(Ex_F2) #4
 Evtot_dead = sum(Ev_F1_dead) + sum(Ev_F2_dead) + sum(Ex_F1_dead) + sum(Ex_F2_dead)
 
-Svtot = Sv + Sv_F1 + Sv_F2 + sum(Sx_F1) + sum(Sx_F2) #5
+Svtot =      Sv +      Sv_F1 +      Sv_F2 +     sum(Sx_F1) +       sum(Sx_F2) #5
 Svtot_dead = Sv_dead + Sv_F1_dead + Sv_F2_dead + sum(Sx_F1_dead) + sum(Sx_F2_dead)
 
 mv = Svtot + Evtot + Ivtot
 
 mv_dead = Svtot_dead + Ivtot_dead + Evtot_dead
+
+Ix_tot = sum(Ix_F1) + sum(Ix_F2)
+Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
+
+Ex_tot = sum(Ex_F1) + sum(Ex_F2)
+Ex_dead = sum(Ex_F1_dead) + sum(Ex_F2_dead)
+
+Sx_tot =  sum(Sx_F1) + sum(Sx_F2)
+Sx_dead = sum(Sx_F1_dead) + sum(Sx_F2_dead)
+
+
+#sum the ivm-dead
+IVM_dead <- Sx_dead + Ex_dead + Ix_dead
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -136,8 +148,8 @@ FOIv <- 0.008
 #incv <- lag_incv
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
-betaa <- 0.5*PL/dPL
-#betaa <- mv0 * mu0 * theta2
+#betaa <- 0.5*PL/dPL
+betaa <- mv0 * mu0 * theta2
 
 # determing the on and off of ivermectin effect
 ttt[] <- user()
@@ -408,5 +420,20 @@ output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
 output(mv_dead) <- mv_dead
-
+output(Ivtot) = Ivtot
+output(Evtot) = Evtot
+output(Svtot) = Svtot
+output(Svtot_dead) <- Svtot_dead
+output(Evtot_dead) <- Evtot_dead
+output(Ivtot_dead) <- Ivtot_dead
+output(Ix_dead) <- Ix_dead
+output(Ex_dead) <- Ex_dead
+output(Sx_dead) <- Sx_dead
 output(IVRM_sr) <- IVRM_sr
+output(Sx_tot) <- Sx_tot
+output(Ex_tot) <- Ex_tot
+output(Ix_tot) <- Ix_tot
+output(IVM_dead) <- IVM_dead
+output(mv0) <- mv0
+output(betaa) <- betaa
+
