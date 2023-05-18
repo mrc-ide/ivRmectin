@@ -4,7 +4,7 @@ devtools::load_all()
 library(ggplot2)
 library(gridExtra)
 library(RColorBrewer)
-
+library(tidyverse)
 # Create a vector of age categories for the model
 #init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
 
@@ -85,9 +85,10 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   ivm_max_age = ivm_parms0$ivm_max_age,
                                   IVRM_start = ivm_parms0$IVRM_start)
 
+IVM_start <- c(180, 210, 240)
 #another scenario
 ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
-  IVM_start_times = c(180, 210, 240),
+  IVM_start_times = IVM_start,
   time_period = time_period,
   hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
   #hazard_profile = hazzy,
@@ -179,3 +180,74 @@ lines(res0$t, res1$Ex_dead, col = cols[2])
 
 plot(res0$t, res0$Ix_dead, ylim = c(0, 300), main = "Ix_dead")
 lines(res0$t, res1$Ix_dead, col = cols[2])
+
+plot(res0$t, res0$IVM_dead, ylim = c(0, 400), main = "Number of IVM dead mosquitoes")
+lines(res0$t, res1$IVM_dead, col = cols[2])
+
+
+par(mfrow = c(1, 1))
+
+#looking at the number of mosquitoes over time
+#plotting total number of mosquitoes
+plot(res0$t/365, res0$mv, ylim = c(0, 42), main = "Total mosquitoes")
+lines(res0$t/365, res1$mv, col = cols[2])
+arrows(IVM_start/365, -50, IVM_start/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
+
+#this is the same distribution regime as for MATAMAL: 3d each month, for 3 months
+#given with DP.
+
+#betaa = mv0*mu0*theta2
+#set theta2 to 1 - aseasonal
+#betaa = mv0*mu0
+#mu0 = betaa/mv0
+#mv0 = betaa/mu0
+
+#what is the mean mosquito density during IVM distrib times and what mu0 would be required to set the eqm to this?
+
+#res1$mv0 == res0$mv. these are pretty much the same
+#but res1$mv not equal to res1$mv0
+IVM_start
+res1_df <- as.data.frame(res1)
+res1_IVM_times <- res1_df %>%
+  filter(between(t, IVM_start[1], IVM_start[3]+23))
+mean_mv_IVM <- mean(res1_IVM_times$mv)
+mean_mv_IVM #28.92708
+
+betaa <- unique(res1_df$betaa)
+new_mu = betaa/mean_mv_IVM
+new_mu #0.1897807
+
+#not sure how to do a check. Show the difference between mu and mu0 and mv and mv0 etc
+res1$mu
+hazzy_check <- rep(1, 28) #artificially set hazard to 1
+IVM_start_check <- 180
+ivm_parms3 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times = IVM_start_check,
+  time_period = time_period,
+  #hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
+  hazard_profile = hazzy_check,
+  ivm_coverage=0.8,
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+new_mu_vec <- rep(new_mu, 28)
+
+wh3 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
+                                  num_int = 3,
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms3$ttt,
+                                  eff_len = ivm_parms3$eff_len,
+                                  #eff_len = 600,
+                                  haz = ivm_parms3$haz,
+                                  ivm_cov_par = ivm_parms3$ivm_cov_par,
+                                  ivm_min_age = ivm_parms3$ivm_min_age,
+                                  ivm_max_age = ivm_parms3$ivm_max_age,
+                                  IVRM_start = ivm_parms3$IVRM_start,
+                                  new_mu = new_mu)
+res3 <- runfun(wh3)
+plot(res3$t, res3$mv, ylim = c(0, 50))
+res3$mu_vi
