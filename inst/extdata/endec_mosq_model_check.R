@@ -20,8 +20,9 @@ dim(haz) = eff_len
 
 dim(mu_vi) = eff_len
 new_mu = user()
-mu_vi[1:eff_len] = haz[i]*new_mu
+mu_vi[1:eff_len] = haz[i]*(new_mu+mu)
 #mu_vi[1:eff_len] = haz[i]*mu
+#mu_vi[1:eff_len] = haz[i]*new_mu
 
 spor_len = 10
 tau_v = spor_len/10
@@ -269,6 +270,7 @@ gammaL <- user() # eff. of den. dep. on late stage relative to early stage
 # fitted entomological parameters:
 mv0 <- user() # initial mosquito density
 mu0 <- user() # baseline mosquito death rate
+#mu0 <- 0.1897
 tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
@@ -440,4 +442,5 @@ output(IVM_dead) <- IVM_dead
 output(mv0) <- mv0
 output(betaa) <- betaa
 output(mu_vi[]) <- mu_vi
+output(mu0) <- mu0
 
