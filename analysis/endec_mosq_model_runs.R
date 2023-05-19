@@ -21,13 +21,14 @@ source("R/mda_ivm_functions.R")
 ivm_haz <- read.table("IVM_derivation/ivermectin_hazards.txt", header=TRUE)
 colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
 #hazzy <- rep(100, 23)
+ivm_cov  = 0.6
 
 # Running the ivm_fun function to generate the extra endectocide specific parameters that you have to pass to the model
 ivm_parms <- ivm_fun(IVM_start_times = 10000,# time endectocide delivery occurs
                       time_period = time_period,         # time period for the model to run over
                      hazard_profile = ivm_haz$IVM_300_3_HS[1:23], # dummy hazard profile - must be vector (we'll change this later on). for 400 dosage
                      #hazard_profile = hazzy,
-                     ivm_coverage = 0.8, # proportion of population receiving the endectocide
+                     ivm_coverage = ivm_cov, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
 ivm_parms$IVRM_start
@@ -66,12 +67,12 @@ ivm_parms0 <- ivm_fun(IVM_start_times = 10000, #no ivermectin: turning ivermecti
                       time_period = time_period,
                       hazard_profile = ivm_haz$IVM_300_3_HS[1:23], #select 300 dosage here
                       #hazard_profile = hazzy,
-                      ivm_coverage=0.8,
+                      ivm_coverage=ivm_cov,
                       ivm_min_age=5,
                       ivm_max_age = 90)
 
 wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model.R",
-                                  num_int = 2, #nets only, but no nets actually being rolled out
+                                  num_int = 1, #nets only, but no nets actually being rolled out
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
@@ -86,17 +87,18 @@ wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   IVRM_start = ivm_parms0$IVRM_start)
 
 IVM_start <- c(180, 210, 240)
+#IVM_start <- 180
 #another scenario
 ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
   IVM_start_times = IVM_start,
   time_period = time_period,
-  hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
   #hazard_profile = hazzy,
-  ivm_coverage=0.8,
+  ivm_coverage=ivm_cov,
                       ivm_min_age=5,
                       ivm_max_age = 90)
 wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model.R",
-                                  num_int = 3,
+                                  num_int = 2,
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
@@ -108,7 +110,9 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   ivm_cov_par = ivm_parms1$ivm_cov_par,
                                   ivm_min_age = ivm_parms1$ivm_min_age,
                                   ivm_max_age = ivm_parms1$ivm_max_age,
-                                  IVRM_start = ivm_parms1$IVRM_start)
+                                  IVRM_start = ivm_parms1$IVRM_start,
+                                  itn_cov = 0.7,
+                                  ITN_IRS_on = 60)
 
 # Running each of the models wh0 (no ivermectin), wh1 (ivermectin, HR = 2 for 10 days) and
 # wh2 (ivermectin, HR = 2 for 28 days)
@@ -211,11 +215,12 @@ res1_df <- as.data.frame(res1)
 res1_IVM_times <- res1_df %>%
   filter(between(t, IVM_start[1], IVM_start[3]+23))
 mean_mv_IVM <- mean(res1_IVM_times$mv)
-mean_mv_IVM #28.92708
+mean_mv_IVM #28.80228
 
 betaa <- unique(res1_df$betaa)
 new_mu = betaa/mean_mv_IVM
-new_mu #0.1897807
+new_mu
+#mean_mu <- mean(res1_IVM_times$mu)
 
 #not sure how to do a check. Show the difference between mu and mu0 and mv and mv0 etc
 res1$mu
@@ -226,7 +231,7 @@ ivm_parms3 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution ever
   time_period = time_period,
   #hazard_profile = ivm_haz$IVM_300_3_HS[1:28],
   hazard_profile = hazzy_check,
-  ivm_coverage=0.8,
+  ivm_coverage=ivm_cov,
   ivm_min_age=5,
   ivm_max_age = 90)
 
