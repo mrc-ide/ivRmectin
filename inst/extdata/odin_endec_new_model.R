@@ -502,6 +502,7 @@ gammaL <- user() # eff. of den. dep. on late stage relative to early stage
 # fitted entomological parameters:
 mv0 <- user() # initial mosquito density
 mu0 <- user() # baseline mosquito death rate
+#mu0 <- 0.1897
 tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
@@ -519,7 +520,7 @@ K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dL
 KL <- K0*theta2
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
-
+#mu <- new_mu
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- user()
 initial(PL) <- init_PL
@@ -534,7 +535,6 @@ deriv(EL) <- beta_larval*mv-muEL*(1+(EL+LL)/KL)*EL - EL/dEL
 deriv(LL) <- EL/dEL - muLL*(1+gammaL*(EL + LL)/KL)*LL - LL/dLL
 # pupae - mortality - fully developed pupae
 deriv(PL) <- LL/dLL - muPL*PL - PL/dPL
-
 ##------------------------------------------------------------------------------
 ########################
 ## INTERVENTION MODEL ##
@@ -640,70 +640,6 @@ av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 dim(av_human) <- num_int
 av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
 
-##------------------------------------------------------------------------------
-###################
-## MODEL OUTPUTS ##
-###################
-##------------------------------------------------------------------------------
-
-# Outputs for each compartment across the sum across all ages, biting heterogeneities and intervention categories
-output(Sout) <- sum(S[,,])
-output(Tout) <- sum(T[,,])
-output(Dout) <- sum(D[,,])
-output(Aout) <- sum(A[,,])
-output(Uout) <- sum(U[,,])
-output(Pout) <- sum(P[,,])
-
-# Outputs for clinical incidence, prevalence and deaths on a given day
-
-# population densities for each age category
-den[] <- user()
-dim(den) <- na
-# index of the age vector for those aged up to and including 59 months
-age59 <- user(integer = TRUE)
-# index of the age vector for those aged up to and including 5 years (60 months)
-age05 <- user(integer = TRUE)
-
-# Slide prevalence
-dim(prev0to80) <- c(na,nh,num_int)
-prev0to80[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
-output(slide_prev0to80) <- sum(prev0to80[,,])/sum(den)
-
-dim(prev0to5) <- c(age05, nh, num_int)
-prev0to5[1:age05,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
-output(slide_prev0to5) <- sum(prev0to5[,,])/sum(den[1:age05])
-
-dim(prev0to59) <- c(age59,nh,num_int)
-prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
-output(slide_prev0to59) <- sum(prev0to59[,,])/sum(den[1:age59])
-
-# Clinical incidence
-dim(raw_clin_inc0to80) <- c(na,nh,num_int)
-raw_clin_inc0to80[,,] <- clin_inc[i,j,k]
-output(clin_inc0to80) <- sum(raw_clin_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
-
-dim(raw_clin_inc0to5) <- c(age05,nh,num_int)
-raw_clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
-output(clin_inc0to5) <- sum(raw_clin_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
-
-dim(raw_clin_inc0to59) <- c(age59,nh,num_int)
-raw_clin_inc0to59[1:age59,,] <- clin_inc[i,j,k]
-output(clin_inc0to59) <- sum(raw_clin_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
-
-# Deaths
-dim(raw_deaths_inc0to80) <- c(na,nh,num_int)
-raw_deaths_inc0to80[,,] <- rD*D[i,j,k]
-output(deaths_inc0to80) <- sum(raw_deaths_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
-
-dim(raw_deaths_inc0to5) <- c(age05,nh,num_int)
-raw_deaths_inc0to5[1:age05,,] <- rD*D[i,j,k]
-output(deaths_inc0to5) <- sum(raw_deaths_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
-
-dim(raw_deaths_inc0to59) <- c(age59,nh,num_int)
-raw_deaths_inc0to59[1:age59,,] <- rD*D[i,j,k]
-output(deaths_inc0to59) <- sum(raw_deaths_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
-
-
 # Param checking outputs
 output(mu) <- mu
 output(beta_larval) <- beta_larval
@@ -720,5 +656,22 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
-
+output(mv_dead) <- mv_dead
+output(Ivtot) = Ivtot
+output(Evtot) = Evtot
+output(Svtot) = Svtot
+output(Svtot_dead) <- Svtot_dead
+output(Evtot_dead) <- Evtot_dead
+output(Ivtot_dead) <- Ivtot_dead
+output(Ix_dead) <- Ix_dead
+output(Ex_dead) <- Ex_dead
+output(Sx_dead) <- Sx_dead
 output(IVRM_sr) <- IVRM_sr
+output(Sx_tot) <- Sx_tot
+output(Ex_tot) <- Ex_tot
+output(Ix_tot) <- Ix_tot
+output(IVM_dead) <- IVM_dead
+output(mv0) <- mv0
+output(betaa) <- betaa
+output(mu_vi[]) <- mu_vi
+output(mu0) <- mu0
