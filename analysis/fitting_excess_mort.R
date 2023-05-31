@@ -3,7 +3,6 @@
 #run the model between different values of mu_h. Which value of mu_h gives the best fit to Hannah's model?
 
 require(tidyverse)
-require(optim)
 
 
 #script for running endec_mosq_model
@@ -142,6 +141,5 @@ res_out <- runfun(out_lapply_list[[1]])
 res_out_list <- lapply(out_lapply_list, runfun)
 res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
 
-#now see which value of mu_h best fits Hannah's model
-
+#now see which value of mu_h gives mvs that are the best fit to Hannah's model
 
