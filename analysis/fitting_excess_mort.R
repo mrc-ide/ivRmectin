@@ -123,7 +123,7 @@ create_mu_h_loop <- function(mu_h_in) {
  return(output)
 }
 
-mu_h_vector <- seq(0, 1, 0.1)
+mu_h_vector <- seq(0, 1, 0.01)
 
 #generate the parameter set for the sensitivity analysis
 out_lapply_list <- lapply(mu_h_vector, create_mu_h_loop)
@@ -141,5 +141,30 @@ res_out <- runfun(out_lapply_list[[1]])
 res_out_list <- lapply(out_lapply_list, runfun)
 res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
 
-#now see which value of mu_h gives mvs that are the best fit to Hannah's model
+#select the mvs of Hannah's during IVM distribution time.
+#IVM distrib d180, 210 and 240
+#so by 240+23, 263, IVM not effective
+#so select mv values between 180 and 263.
 
+res1_ivm_distrib <- as.data.frame(res1) %>%
+  filter(between(t, 180, 263))
+
+out_df <- do.call(rbind,
+                  sapply(1:length(mu_h_vector), function(x){
+                    as.data.frame(res_out_list[[x]]) %>%
+                      filter(between(t, 180, 263)) %>%
+                      select(t, mv, mu_h) %>%
+                      mutate(ref=x)
+                  }, simplify = F))
+
+
+out_list <- split(out_df, f = out_df$ref)
+
+
+error <- numeric()
+for (i in 1:length(mu_h_vector)){
+  error <- c(error, sum((res1_ivm_distrib$mv - out_list[[i]]$mv)^2))
+}
+error
+index <- which.min(error) #mu is 0.3
+mu_h_vector[index]
