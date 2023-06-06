@@ -50,6 +50,9 @@ ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution ever
 #set other params#
 wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model.R",
                                   num_int = 1,
+                                  #num_int = 2,
+                                  #ITN_IRS_on = 100,
+                                  #itn_cov = 0.75,
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,
@@ -105,7 +108,10 @@ lines(res3$t/365,res3$mv, col = "red")
 create_mu_h_loop <- function(mu_h_in) {
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/endec_mosq_model_check.R",
-    num_int = 1, # number of vector control (IRS and ITN) population groups
+    num_int = 1,
+    #num_int = 2, # number of vector control (IRS and ITN) population groups
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
     #het_brackets = 5, # number of heterogeneous biting categories
     #age = init_age, # the different age classes to be ran within the model
     init_EIR = init_EIR, # the Entomological Innoculation Rate
@@ -124,6 +130,7 @@ create_mu_h_loop <- function(mu_h_in) {
 }
 
 mu_h_vector <- seq(0, 1, 0.01)
+#mu_h_vector <- seq(0, 1, 0.001)
 
 #generate the parameter set for the sensitivity analysis
 out_lapply_list <- lapply(mu_h_vector, create_mu_h_loop)
@@ -166,5 +173,81 @@ for (i in 1:length(mu_h_vector)){
   error <- c(error, sum((res1_ivm_distrib$mv - out_list[[i]]$mv)^2))
 }
 error
-index <- which.min(error) #mu is 0.3
-mu_h_vector[index]
+index <- which.min(error) #index the smallest value
+mu_h_vector[index] #0.257
+
+mu_val <- 0.257 # be careful with this - might be better to use what is in mu_h_vector[index]
+#mu_val <- 0.43       #with nets
+#put this value back into the model
+wh4 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
+                                 num_int = 1,
+                                 #num_int = 2,# number of vector control (IRS and ITN) population groups
+                                 #ITN_IRS_on = 100,
+                                 #itn_cov = 0.75,
+                                 #het_brackets = 5, # number of heterogeneous biting categories
+                                 #age = init_age, # the different age classes to be ran within the model
+                                 init_EIR = init_EIR, # the Entomological Innoculation Rate
+                                 #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                 #admin2 = "Fatick", # Admin 2 setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                 ttt = ivm_parms3$ttt, # model specific parameter to control timing of endectocide delivery
+                                 eff_len = ivm_parms3$eff_len, # number of days after receiving endectocide that HR is higher
+                                 haz = ivm_parms3$haz, # hazard ratio for each off the eff_len number of days
+                                 ivm_cov_par = ivm_parms3$ivm_cov_par, # proportion of popuulation receiving the endectocide
+                                 ivm_min_age = ivm_parms3$ivm_min_age, # youngest age group receiving endectocide
+                                 ivm_max_age = ivm_parms3$ivm_max_age, # oldest age group receiving endectocide
+                                 IVRM_start = ivm_parms3$IVRM_start,
+                                 mu_h = mu_val) # model specific parameter to control timing of endectocide delivery
+
+res4 <- runfun(wh4)
+plot(res1$t/365, res1$mv, ylim = c(0, 45))
+lines(res3$t/365, res3$mv, col = "blue") #with the equilibrium
+lines(res4$t/365,res4$mv, col = "red") #getting spikes better with the fitting
+
+#put the values back into the bigger model and look at the output, and compare to Hannah's original model
+
+wh5 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_endec_new_model.R",
+                                  num_int = 1
+                                  #num_int = 2, #nets only, but no nets actually being rolled out
+                                  #ITN_IRS_on = 100,
+                                  #itn_cov = 0.75,
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms3$ttt,
+                                  eff_len = ivm_parms3$eff_len,
+                                  haz = ivm_parms3$haz,
+                                  ivm_cov_par = ivm_parms3$ivm_cov_par,
+                                  ivm_min_age = ivm_parms3$ivm_min_age,
+                                  ivm_max_age = ivm_parms3$ivm_max_age,
+                                  IVRM_start = ivm_parms3$IVRM_start,
+                                  new_mu = mu_val)
+
+
+res5 <- runfun(wh5)
+
+wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
+                                  num_int = 1
+                                  #num_int = 2,
+                                  #ITN_IRS_on = 100,
+                                  #itn_cov = 0.75,
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms1$ttt,
+                                  eff_len = ivm_parms1$eff_len,
+                                  haz = ivm_parms1$haz,
+                                  ivm_cov_par = ivm_parms1$ivm_cov_par,
+                                  ivm_min_age = ivm_parms1$ivm_min_age,
+                                  ivm_max_age = ivm_parms1$ivm_max_age,
+                                  IVRM_start = ivm_parms1$IVRM_start)
+
+#run Hannah's model
+res0 <- runfun(wh0)
+
+plot(res0$t/365, res0$slide_prev0to5, ylim = c(0, 1))
+lines(res5$t/365, res5$slide_prev0to5, col = "red")
+arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 0.1, length = 0.1, lwd = 3, col = "goldenrod2")
