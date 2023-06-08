@@ -152,8 +152,9 @@ create_mu_h_loop <- function(mu_h_in) {
  return(output)
 }
 
-mu_h_vector <- seq(0, 1, 0.01)
-#mu_h_vector <- seq(0, 1, 0.001)
+
+#mu_h_vector <- seq(0, 1, 0.01)
+mu_h_vector <- seq(0, 1, 0.001)
 
 #generate the parameter set for the sensitivity analysis
 out_lapply_list <- lapply(mu_h_vector, create_mu_h_loop)
@@ -169,6 +170,9 @@ res_out <- runfun(out_lapply_list[[1]])
 
 #outputting with lapply
 res_out_list <- lapply(out_lapply_list, runfun)
+
+#save this output so don't need to run this again and again.
+
 res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
 
 #select the mvs of Hannah's during IVM distribution time.
@@ -178,7 +182,7 @@ res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
 
 res1_ivm_distrib <- as.data.frame(res1) %>%
   filter(between(t, 180, 263))
-
+mu_h_vector <- seq(0, 1, 0.01)
 out_df <- do.call(rbind,
                   sapply(1:length(mu_h_vector), function(x){
                     as.data.frame(res_out_list[[x]]) %>%
@@ -223,6 +227,7 @@ wh4 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mode
 
 res4 <- runfun(wh4)
 
+#checking what the model output is with no ivermectin killing effect, just nets
 wh14 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
                                  #num_int = 1,
                                  num_int = 2,# number of vector control (IRS and ITN) population groups
@@ -244,6 +249,7 @@ wh14 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
 
 res14 <- runfun(wh14)
 
+#same IVM killing as without the refit, but nets are on
 wh15 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
                                   #num_int = 1,
                                   num_int = 2,# number of vector control (IRS and ITN) population groups
