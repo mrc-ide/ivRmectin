@@ -19,10 +19,10 @@ haz[] <- user()
 dim(haz) = eff_len
 
 dim(mu_vi) = eff_len
-new_mu = user()
-mu_vi[1:eff_len] = haz[i]*(new_mu+mu)
-#mu_vi[1:eff_len] = haz[i]*mu
-#mu_vi[1:eff_len] = haz[i]*new_mu
+mu_h = user()
+mu_vi[1:eff_len] = haz[i]*(mu_h+mu) #HAZARD = 1
+#mu_vi[1:eff_len] = haz[i]*mu #HANNAH: daily hazards
+
 
 spor_len = 10
 tau_v = spor_len/10
@@ -443,4 +443,5 @@ output(mv0) <- mv0
 output(betaa) <- betaa
 output(mu_vi[]) <- mu_vi
 output(mu0) <- mu0
+output(mu_h) <- mu_h
 
