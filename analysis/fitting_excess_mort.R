@@ -172,16 +172,18 @@ res_out <- runfun(out_lapply_list[[1]])
 #outputting with lapply
 res_out_list <- lapply(out_lapply_list, runfun)
 
-#save this output so don't need to run this again and again.
 
 res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
+
+#save this output so don't need to run this again and again.
+res1_out_df <- as.data.frame(res1)
 
 #select the mvs of Hannah's during IVM distribution time.
 #IVM distrib d180, 210 and 240
 #so by 240+23, 263, IVM not effective
 #so select mv values between 180 and 263.
 
-res1_ivm_distrib <- as.data.frame(res1) %>%
+res1_ivm_distrib <- res1_out_df %>%
   filter(between(t, 180, 263))
 mu_h_vector <- seq(0, 1, 0.01)
 out_df <- do.call(rbind,
