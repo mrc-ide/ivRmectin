@@ -178,14 +178,20 @@ res_out_list[[2]]$mu_h #can see outputs for the different mu_h inputs
 #save this output so don't need to run this again and again.
 res1_out_df <- as.data.frame(res1)
 
+#write.csv(res1_out_df, file = "data/res1_out_df.csv", row.names = FALSE)
+
+res1_out_df_in <- read.csv("data/res1_out_df.csv", header = TRUE)
+
 #select the mvs of Hannah's during IVM distribution time.
 #IVM distrib d180, 210 and 240
 #so by 240+23, 263, IVM not effective
 #so select mv values between 180 and 263.
 
-res1_ivm_distrib <- res1_out_df %>%
+res1_ivm_distrib <- res1_out_df_in %>%
   filter(between(t, 180, 263))
-mu_h_vector <- seq(0, 1, 0.01)
+mu_h_vector <- seq(0, 1, 0.001)
+
+#go through res_out_list (the models with different values of mu_h and extract t, mv and mu_h between t = 180 and t=263)
 out_df <- do.call(rbind,
                   sapply(1:length(mu_h_vector), function(x){
                     as.data.frame(res_out_list[[x]]) %>%
@@ -194,9 +200,11 @@ out_df <- do.call(rbind,
                       mutate(ref=x)
                   }, simplify = F))
 
+#write.csv(out_df, file = "data/out_df.csv", row.names = FALSE) #these are the model outputs
 
-out_list <- split(out_df, f = out_df$ref)
+out_df_in <- read.csv("data/out_df.csv", header = TRUE)
 
+out_list <- split(out_df_in, f = out_df$ref)
 
 error <- numeric()
 for (i in 1:length(mu_h_vector)){
