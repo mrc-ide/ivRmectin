@@ -352,8 +352,8 @@ incv <- delay(lag_incv, delayMos)
 #incv <- lag_incv
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
-betaa <- 0.5*PL/dPL
-#betaa <- mv0 * mu0 * theta2
+#betaa <- 0.5*PL/dPL
+betaa <- mv0 * mu0 * theta2
 
 # determing the on and off of ivermectin effect
 ttt[] <- user()
@@ -570,8 +570,10 @@ Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
 av <- fv*Q # biting rate on humans
 dim(av_mosq) <- num_int
 av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
+av_mosq_sum <- sum(av_mosq[1:num_int])
 dim(av_human) <- num_int
 av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
+av_human_sum <- sum(av_human[1:num_int])
 
 ##------------------------------------------------------------------------------
 ###################
@@ -653,5 +655,7 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
+output(av_mosq_sum) <- av_mosq_sum
+output(av_human_sum) <- av_human_sum
 
 output(IVRM_sr) <- IVRM_sr
