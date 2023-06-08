@@ -87,6 +87,38 @@ mod_2 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_e
 #run Hannah's model
 res2 <- runfun(mod_2)
 
+#nets only model
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms2 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times = IVM_start,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0,
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+mod_3 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
+                                    #num_int = 1,
+                                    num_int = 2,
+                                    ITN_IRS_on = 100,
+                                    itn_cov = 0.75,
+                                    het_brackets = 5,
+                                    #age = init_age,
+                                    init_EIR = 100,
+                                    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                    #admin2 = "Fatick",
+                                    ttt = ivm_parms2$ttt,
+                                    eff_len = ivm_parms2$eff_len,
+                                    haz = ivm_parms1$haz,
+                                    ivm_cov_par = ivm_parms2$ivm_cov_par,
+                                    ivm_min_age = ivm_parms2$ivm_min_age,
+                                    ivm_max_age = ivm_parms2$ivm_max_age,
+                                    IVRM_start = ivm_parms2$IVRM_start)
+
+res3 <- runfun(mod_3)
+
+
 plot(res1$t, res1$mv, ylim = c(0, 50))
 lines(res2$t, res2$mv, ylim = c(0, 50), col = "red") #ivermectin and nets
 
@@ -96,6 +128,25 @@ lines(res2$t, res2$mv, ylim = c(0, 50), col = "red") #ivermectin and nets
 
 #avhc = mean biting rate of mosquitoes in the presence of vector control
 
-plot(res2$t, res2$avhc, ylim = c(0, 1), pch = 1)
-#lines(res2$t, res)
+plot(res2$t, res2$avhc, ylim = c(0, 1), type = "l")
+lines(res2$t, res2$av_mosq_sum, col = "turquoise")
+lines(res2$t, res2$av_human_sum, col = "maroon")
+lines(res2$t, res2$avhc, col = "blue")
+lines(res2$t, res2$Q, col = "green")
+lines(res2$t, res2$av, col = "red")
+lines(res2$t, res2$av_alt_host, col = "purple")
 
+
+#compare avhc between mod 1 (no nets) and mod 2 (nets)
+plot(res1$t, res1$avhc, ylim = c(0, 1))
+lines(res2$t, res2$avhc, col = "red")
+lines(res2$t, res2$av_alt_host, col = "purple")
+
+#are the number of mosquitoes recruited into the ivermectin compartments actually different when nets are on?
+plot(res1$t, res1$Sxtot, ylim = c(0, 50))
+points(res2$t, res2$Sxtot, col = "red") #
+
+#show the prevalence in these two scenarios
+plot(res1$t, res1$slide_prev0to5, ylim = c(0, 1))
+points(res2$t, res2$slide_prev0to5, col  = "red") #ivm and llin
+points(res3$t, res3$slide_prev0to5, col  = "blue") #llin only
