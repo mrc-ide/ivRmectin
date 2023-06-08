@@ -275,6 +275,8 @@ dim(haz) = eff_len
 
 dim(mu_vi) = eff_len
 new_mu = user()
+
+#mu_vi[1:eff_len] = haz[i]*mu
 mu_vi[1:eff_len] = haz[i]*(new_mu+mu)
 #mu_vi[1:eff_len] = haz[i]*mu
 #mu_vi[1:eff_len] = haz[i]*new_mu
@@ -380,24 +382,22 @@ IVM_dead <- Sx_dead + Ex_dead + Ix_dead
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
-#cU <- user() # infectiousness U -> mosq
-#cD <- user() # infectiousness D -> mosq
-#cT <- user() # T -> mosq
-#gamma1 <- user() # fitted value of gamma1 characterises cA function
-#dim(cA) <- c(na,nh,num_int)
-#cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
-
-# Force of infection from humans to mosquitoes
-#dim(FOIvijk) <- c(na,nh,num_int)
-#omega <- user() #normalising constant for biting rates
-#FOIvijk[1:na, 1:nh, 1:num_int] <- (cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k]) * rel_foi[j] * av_mosq[k]*foi_age[i]/omega
-#lag_FOIv=sum(FOIvijk)
-
-# Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
-#delayGam <- user() # Lag from parasites to infectious gametocytes
-#delayMos <- user() # Extrinsic incubation period.
-#FOIv <- delay(lag_FOIv, delayGam)
-FOIv <- 0.008
+cU <- user() # infectiousness U -> mosq
+cD <- user() # infectiousness D -> mosq
+cT <- user() # T -> mosq
+gamma1 <- user() # fitted value of gamma1 characterises cA function
+dim(cA) <- c(na,nh,num_int)
+cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
+#Force of infection from humans to mosquitoes
+dim(FOIvijk) <- c(na,nh,num_int)
+omega <- user() #normalising constant for biting rates
+FOIvijk[1:na, 1:nh, 1:num_int] <- (cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k]) * rel_foi[j] * av_mosq[k]*foi_age[i]/omega
+lag_FOIv=sum(FOIvijk)
+#Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
+delayGam <- user() # Lag from parasites to infectious gametocytes
+delayMos <- user() # Extrinsic incubation period.
+FOIv <- delay(lag_FOIv, delayGam)
+#FOIv <- 0.008
 
 # Number of mosquitoes that become infected at each time point
 #surv <- exp(-mu*delayMos)
@@ -639,6 +639,70 @@ dim(av_mosq) <- num_int
 av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 dim(av_human) <- num_int
 av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
+
+##------------------------------------------------------------------------------
+###################
+## MODEL OUTPUTS ##
+###################
+##------------------------------------------------------------------------------
+
+# Outputs for each compartment across the sum across all ages, biting heterogeneities and intervention categories
+output(Sout) <- sum(S[,,])
+output(Tout) <- sum(T[,,])
+output(Dout) <- sum(D[,,])
+output(Aout) <- sum(A[,,])
+output(Uout) <- sum(U[,,])
+output(Pout) <- sum(P[,,])
+
+# Outputs for clinical incidence, prevalence and deaths on a given day
+
+# population densities for each age category
+den[] <- user()
+dim(den) <- na
+# index of the age vector for those aged up to and including 59 months
+age59 <- user(integer = TRUE)
+# index of the age vector for those aged up to and including 5 years (60 months)
+age05 <- user(integer = TRUE)
+
+# Slide prevalence
+dim(prev0to80) <- c(na,nh,num_int)
+prev0to80[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+output(slide_prev0to80) <- sum(prev0to80[,,])/sum(den)
+
+dim(prev0to5) <- c(age05, nh, num_int)
+prev0to5[1:age05,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+output(slide_prev0to5) <- sum(prev0to5[,,])/sum(den[1:age05])
+
+dim(prev0to59) <- c(age59,nh,num_int)
+prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+output(slide_prev0to59) <- sum(prev0to59[,,])/sum(den[1:age59])
+
+# Clinical incidence
+dim(raw_clin_inc0to80) <- c(na,nh,num_int)
+raw_clin_inc0to80[,,] <- clin_inc[i,j,k]
+output(clin_inc0to80) <- sum(raw_clin_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_clin_inc0to5) <- c(age05,nh,num_int)
+raw_clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
+output(clin_inc0to5) <- sum(raw_clin_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_clin_inc0to59) <- c(age59,nh,num_int)
+raw_clin_inc0to59[1:age59,,] <- clin_inc[i,j,k]
+output(clin_inc0to59) <- sum(raw_clin_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
+
+# Deaths
+dim(raw_deaths_inc0to80) <- c(na,nh,num_int)
+raw_deaths_inc0to80[,,] <- rD*D[i,j,k]
+output(deaths_inc0to80) <- sum(raw_deaths_inc0to80[,,])/sum(den) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_deaths_inc0to5) <- c(age05,nh,num_int)
+raw_deaths_inc0to5[1:age05,,] <- rD*D[i,j,k]
+output(deaths_inc0to5) <- sum(raw_deaths_inc0to5[,,])/sum(den[1:age05]) # check whether this needs to be pop weighted as I have currently
+
+dim(raw_deaths_inc0to59) <- c(age59,nh,num_int)
+raw_deaths_inc0to59[1:age59,,] <- rD*D[i,j,k]
+output(deaths_inc0to59) <- sum(raw_deaths_inc0to59[,,])/sum(den[1:age59]) # check whether this needs to be pop weighted as I have currently
+
 
 # Param checking outputs
 output(mu) <- mu
