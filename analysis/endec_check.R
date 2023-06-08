@@ -96,9 +96,10 @@ new_mu #0.190603
 
 ivm_haz2 = rep(1, 730) #do this so we can see the new equilibrium
 ivm_parms3 <- ivm_fun(IVM_start_times = IVM_start,# time endectocide delivery occurs
-                     time_period = time_period,         # time period for the model to run over
+                     #IVM_start = 180,
+                    time_period = time_period,         # time period for the model to run over
                      hazard_profile = ivm_haz2[1:23], # dummy hazard profile - must be vector (we'll change this later on). for 400 dosage
-                     #hazard_profile = hazzy,
+                     #hazard_profile = ivm_haz2[1:730],
                      ivm_coverage = ivm_cov, # proportion of population receiving the endectocide
                      ivm_min_age = 5, # youngest age group receiving endectocide
                      ivm_max_age = 90) # oldest age group receiving endectocide
@@ -124,6 +125,11 @@ res3 <- runfun(wh3)
 res3$mu
 plot(res3$t, res3$betaa)
 res3$mv[180:730] #off by 1 mosquito, surely this is ok??
+plot(res0$t/365, res0$mv, ylim = c(0, 42), main = "Total mosquitoes", xlim = c(0, 3))
+lines(res0$t/365, res3$mv, col = cols[2])
+abline(h = mean_mv_IVM, lty = "dashed", col = cols[2])
+arrows(c(180)/365, -50, c(180)/365, 40, length = 0.1, lwd = 3, col = "goldenrod2")
+
 
 plot(res0$t/365, res0$mv, ylim = c(0, 42), main = "Total mosquitoes", xlim = c(0, 3))
 lines(res0$t/365, res1$mv, col = cols[2])
@@ -163,3 +169,35 @@ plot(res4$t/365, res4$mv, ylim = c(0, 42), main = "Total mosquitoes", xlim = c(0
 lines(res3$t/365, res3$mv, col = "cornflowerblue")
 arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
 
+
+#the updated full model
+wh5 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_endec_new_model.R",
+                                  num_int = 1, #nets only, but no nets actually being rolled out
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms4$ttt,
+                                  eff_len = ivm_parms4$eff_len,
+                                  haz = ivm_parms3$haz,
+                                  ivm_cov_par = ivm_parms4$ivm_cov_par,
+                                  ivm_min_age = ivm_parms4$ivm_min_age,
+                                  ivm_max_age = ivm_parms4$ivm_max_age,
+                                  IVRM_start = ivm_parms4$IVRM_start,
+                                  new_mu = new_mu_input)
+
+
+res5 <- runfun(wh5)
+
+plot(res4$t/365, res4$slide_prev0to80, ylim  = c(0, 1)) #original model with daily HR
+lines(res5$t/365, res5$slide_prev0to80, col = "cornflowerblue") #HR of 1 and fixed mortality rate elevation
+arrows(c(180, 210, 240)/365, 0, c(180, 210, 240)/365, 0.2, length = 0.1, lwd = 3, col = "goldenrod2")
+
+plot(res4$t/365, res4$mv, ylim = c(0, 42), main = "Total mosquitoes", xlim = c(0, 3))
+lines(res1$t/365, res1$mv, col = "green") #checking Hannah's mosquito model and full model are consistent
+
+#plot the simple model mv onto it
+lines(res3$t/365, res3$mv, col = "cornflowerblue")
+lines(res5$t/365, res5$mv, col = "lightpink")
+arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 1, length = 0.1, lwd = 3, col = "goldenrod2")
