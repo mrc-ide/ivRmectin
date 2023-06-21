@@ -323,6 +323,10 @@ Svtot = Sv + Sv_F1 + Sv_F2 + sum(Sx_F1) + sum(Sx_F2)
 
 mv = Svtot + Evtot + Ivtot
 
+Sxtot = sum(Sx_F1) + sum(Sx_F2)
+Extot = sum(Ex_F1) + sum(Ex_F2)
+Ixtot = sum(Ix_F1) + sum(Ix_F2)
+mvxtot = Sxtot + Extot + Ixtot
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -557,6 +561,7 @@ dim(zhi) <- num_int
 dim(whi) <- num_int
 zhi[1:num_int] <- cov[i]*z[i]
 whi[1:num_int] <- cov[i]*w[i]
+x <- sum(whi)
 zh <- if(t < ITN_IRS_on) 0 else sum(zhi)
 wh <- if(t < ITN_IRS_on) 1 else sum(whi)
 # Z (zbar) - average probability of mosquito trying again during single feeding attempt
@@ -568,6 +573,7 @@ wbar <- 1 - Q0 + Q0*wh
 p1 <- wbar*p10/(1-zbar*p10)
 Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
 av <- fv*Q # biting rate on humans
+av_alt_host <- fv*(1-Q) #biting rate on animals
 dim(av_mosq) <- num_int
 av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 av_mosq_sum <- sum(av_mosq[1:num_int])
@@ -655,7 +661,20 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
+output(av_mosq[]) <- TRUE
 output(av_mosq_sum) <- av_mosq_sum
 output(av_human_sum) <- av_human_sum
-
+output(av_alt_host) <- av_alt_host
+output(av) <- av
 output(IVRM_sr) <- IVRM_sr
+output(Sxtot) <- Sxtot
+output(Extot) <- Extot
+output(Ixtot) <- Ixtot
+output(whi[]) <- TRUE
+output(x) <- x
+output(w[]) <- TRUE
+output(fv) <- fv
+output(EIR[]) <- TRUE
+output(itn_cov) <- itn_cov
+output(ivm_cov) <- ivm_cov
+output(mvxtot) <- mvxtot
