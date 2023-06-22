@@ -130,7 +130,7 @@ create_ITN_cov_loop <- function(itn_cov_in){
   return(output)
 }
 
-itn_cov_vector <- seq(0, 1, 0.05)
+itn_cov_vector <- seq(0, 1, 0.25)
 
 out_lapply_list <- lapply(itn_cov_vector, create_ITN_cov_loop) #loop through all parameter values
 
@@ -148,16 +148,21 @@ out_df <- do.call(rbind,
 #go from wide to long
 #out_df_long <- gather(out_df, parameter, value, itn_cov:ref, factor_key = TRUE)
 
+#MOVE THIS PLOT
 #plot of av_mosq_sum (across the intervention categories changing with ITN cov). Difficult to interpret because summing
 ggplot(out_df, aes(x = t, y = av_mosq_sum, col = as.factor(itn_cov)))+
   geom_line(linewidth = 1)
 
+#MOVE THIS PLOT
 #plot of avhc over time - this is the normalised value and what clearly affects the ivm uptake
 ggplot(out_df, aes(x = t, y = avhc, col = as.factor(itn_cov)))+
   geom_line(linewidth = 1)
 
+
 #get different combinations of itn cov and llin cov parameters
-create_ivm_itn_cov_loop <- function(itn_cov_in, ivm_cov_in){
+create_ivm_itn_cov_loop <- function(itn_ivm_param){
+  itn_cov_in <- itn_ivm_param[1]
+  ivm_cov_in <-itn_ivm_param[2]
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide.R",
     #num_int = 1,
@@ -180,7 +185,45 @@ create_ivm_itn_cov_loop <- function(itn_cov_in, ivm_cov_in){
   return(output)
 }
 
-ivm_cov_vector <- seq(0, 1, 0.05)
+ivm_cov_vector <- seq(0, 1, 0.25)
 
-#get parameters: lapply(list, function, argument)
-out_lapply_list2 <- lapply(itn_cov_vector, create_ivm_itn_cov_loop, ivm_cov_vector)
+#make an empty list
+param_list <- list()
+
+#use expand grid to get all combinations of the parameter values
+param_df <- expand.grid(itn_cov = itn_cov_vector,
+                        ivm_cov = ivm_cov_vector)
+
+for(i in seq_len(nrow(param_df))){
+  param_list[[i]] <- as.numeric(param_df[i,]) #convert to numeric so it's in the right form for runfun
+}
+
+out_2_list <- lapply(param_list, create_ivm_itn_cov_loop) #putting param list into the function to generate parameter set
+
+#run it
+res_out_2_list <- lapply(out_2_list, runfun)
+#UP TO HERE
+
+
+
+#go through and save key parameters
+
+
+out_df_2 <- do.call(rbind,
+                  sapply(1:(length(itn_cov_vector)*length(ivm_cov_vector)), function(x){
+                    as.data.frame(res_out_2_list[[x]]) %>%
+                      select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot) %>%
+                      mutate(ref = x)
+                  }, simplify = F))
+
+write.csv(out_df_2, file = "data/out_df_2.csv", row.names = FALSE)
+
+out_df2 <- read.csv("data/out_df_2.csv", header = TRUE)
+
+#can put this in a plotting script
+ggplot(out_df2, aes(x = itn_cov, y = ivm_cov, col = mvxtot))+
+  geom_tile()
+
+
+ggplot(out_df_2, aes(x = t, y = Sxtot))+
+  geom_point()
