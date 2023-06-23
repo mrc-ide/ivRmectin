@@ -148,15 +148,9 @@ out_df <- do.call(rbind,
 #go from wide to long
 #out_df_long <- gather(out_df, parameter, value, itn_cov:ref, factor_key = TRUE)
 
-#MOVE THIS PLOT
-#plot of av_mosq_sum (across the intervention categories changing with ITN cov). Difficult to interpret because summing
-ggplot(out_df, aes(x = t, y = av_mosq_sum, col = as.factor(itn_cov)))+
-  geom_line(linewidth = 1)
+write.csv(out_df, file = "data/out_df.csv", row.names = FALSE)
 
-#MOVE THIS PLOT
-#plot of avhc over time - this is the normalised value and what clearly affects the ivm uptake
-ggplot(out_df, aes(x = t, y = avhc, col = as.factor(itn_cov)))+
-  geom_line(linewidth = 1)
+#see plot 1 and 2 in llin_ivm_plots.R
 
 
 #get different combinations of itn cov and llin cov parameters
@@ -218,12 +212,5 @@ out_df_2 <- do.call(rbind,
 
 write.csv(out_df_2, file = "data/out_df_2.csv", row.names = FALSE)
 
-out_df2 <- read.csv("data/out_df_2.csv", header = TRUE)
-
-#can put this in a plotting script
-ggplot(out_df2, aes(x = itn_cov, y = ivm_cov, col = mvxtot))+
-  geom_tile()
 
 
-ggplot(out_df_2, aes(x = t, y = Sxtot))+
-  geom_point()
