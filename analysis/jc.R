@@ -88,6 +88,7 @@ create_ivm_itn_cov_loop <- function(itn_ivm_param){
   return(output)
 }
 
+itn_cov_vector <- seq(0, 1, 0.25)
 ivm_cov_vector <- seq(0, 1, 0.25)
 
 #make an empty list
