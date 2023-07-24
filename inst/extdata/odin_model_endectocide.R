@@ -345,7 +345,7 @@ Sx_dead = sum(Sx_F1_dead) + sum(Sx_F2_dead)
 Ex_dead = sum(Ex_F1_dead) + sum(Ex_F2_dead)
 Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
 
-mx_dead = Sx_dead + Ex_dead + Ix_dead
+mvx_dead = Sx_dead + Ex_dead + Ix_dead
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -715,4 +715,4 @@ output(d_ITN0) <- d_ITN0
 output(r_ITN0) <- r_ITN0
 output(ITN_decay)<- ITN_decay
 output(itn_loss) <- itn_loss
-output(mx_dead) <- mx_dead
+output(mvx_dead) <- mvx_dead
