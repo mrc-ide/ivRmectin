@@ -715,4 +715,7 @@ output(d_ITN0) <- d_ITN0
 output(r_ITN0) <- r_ITN0
 output(ITN_decay)<- ITN_decay
 output(itn_loss) <- itn_loss
+output(Sx_dead) <- Sx_dead
+output(Ex_dead) <- Ex_dead
+output(Ix_dead) <- Ix_dead
 output(mvx_dead) <- mvx_dead
