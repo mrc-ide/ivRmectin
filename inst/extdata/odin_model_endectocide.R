@@ -220,7 +220,7 @@ FOI_lag[1:na, 1:nh, 1:num_int] <- EIR[i,j,k] * (if(IB[i,j,k]==0) b0 else b[i,j,k
 dE <- user() # latent period of human infection.
 dim(FOI) <- c(na,nh,num_int)
 FOI[,,] <- delay(FOI_lag[i,j,k],dE)
-
+#FOI[,,] <- FOI_lag[i,j,k] #doing this to see if helps with neg numbers
 # EIR -rate at which each age/het/int group is bitten
 # rate for age group * rate for biting category * FOI for age group * prop of
 # infectious mosquitoes
@@ -289,27 +289,39 @@ initial(Sv_F1) = 0
 initial(Sv_F2) = 0
 initial(Sx_F1[]) = 0
 initial(Sx_F2[]) = 0
+initial(Sx_F1_dead[]) = 0
+initial(Sx_F2_dead[]) = 0
 
 initial(Ev_F1[]) = init_Ev/spor_len * mv0
 initial(Ev_F2[]) = 0 #init_Ev/spor_len * mv0/2
 initial(Ex_F1[,]) = 0
 initial(Ex_F2[,]) = 0
+initial(Ex_F1_dead[,]) = 0
+initial(Ex_F2_dead[,]) = 0
 
 initial(Iv_F1) = init_Iv *mv0
 initial(Iv_F2) = 0 #init_Iv *mv0/2
 initial(Ix_F1[]) = 0
 initial(Ix_F2[]) = 0
+initial(Ix_F1_dead[]) = 0
+initial(Ix_F2_dead[]) = 0
 
 dim(Sx_F1) = eff_len
 dim(Sx_F2) = eff_len
+dim(Sx_F1_dead) = eff_len
+dim(Sx_F2_dead) = eff_len
 dim(Ix_F1) = eff_len
 dim(Ix_F2) = eff_len
+dim(Ix_F1_dead) = eff_len
+dim(Ix_F2_dead) = eff_len
 
 dim(Ev_F1) = spor_len
 dim(Ev_F2) = spor_len
 
 dim(Ex_F1) = c(spor_len, eff_len)
 dim(Ex_F2) = c(spor_len, eff_len)
+dim(Ex_F1_dead) =  c(spor_len, eff_len)
+dim(Ex_F2_dead) =  c(spor_len, eff_len)
 
 ## user defined ivermectin age and coverage parameters (coverage = coverage of targeted age group)
 ivm_cov_par <- user()
@@ -327,6 +339,11 @@ Sxtot = sum(Sx_F1) + sum(Sx_F2)
 Extot = sum(Ex_F1) + sum(Ex_F2)
 Ixtot = sum(Ix_F1) + sum(Ix_F2)
 mvxtot = Sxtot + Extot + Ixtot
+
+#track IVM-killed mosquitoes
+Sx_dead = sum(Sx_F1_dead) + sum(Sx_F2_dead)
+Ex_dead = sum(Ex_F1_dead) + sum(Ex_F2_dead)
+Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -378,7 +395,6 @@ deriv(Sx_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t 
 deriv(Sx_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) ivm_cov*(avhc-FOIv)*(Sv_F1 + Sv_F2) + (avhc - FOIv)*Sx_F1[i] - FOIv*Sx_F2[i] - mu_vi[i]*Sx_F2[i]     else  (avhc- FOIv)*Sx_F1[i] - mu_vi[i]*Sx_F2[i] - FOIv*Sx_F2[i]
 
 
-
 deriv(Ev_F1[1])  =           if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) FOIv*(1-ivm_cov)*Sv  - mu*Ev_F1[i] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i]  else FOIv*Sv - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]
 
 deriv(Ev_F1[2:spor_len]) =   if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  1/tau_v*Ev_F1[i-1] - avhc*Ev_F1[i] - 1/tau_v*Ev_F1[i] - mu*Ev_F1[i]  else 1/tau_v*Ev_F1[i-1] - 1/tau_v*Ev_F1[i] - avhc*Ev_F1[i]- mu*Ev_F1[i]
@@ -407,6 +423,18 @@ deriv(Ix_F1[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t 
 
 deriv(Ix_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len))  avhc*ivm_cov*(Iv_F1 + Iv_F2)  + 1/tau_v*Ex_F2[spor_len,i]  + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]  else 1/tau_v*Ex_F2[spor_len, i] + avhc*Ix_F1[i] - mu_vi[i]*Ix_F2[i]
 
+#track IVM-killed  mosquitoes#####
+deriv(Sx_F1_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) mu_vi[i]*Sx_F1[i] else mu_vi[i]*Sx_F1[i]
+deriv(Sx_F2_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len )) mu_vi[i]*Sx_F2[i] else mu_vi[i]*Sx_F2[i]
+
+deriv(Ex_F1_dead[1,1:eff_len]) =           if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) mu_vi[j]*Ex_F1[i,j] else mu_vi[j]*Ex_F1[i,j]
+deriv(Ex_F1_dead[2:spor_len, 1:eff_len]) = if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) mu_vi[j]*Ex_F1[i,j] else mu_vi[j]*Ex_F1[i,j]
+
+deriv(Ex_F2_dead[1, 1:eff_len]) =            if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) mu_vi[j]*Ex_F2[i,j] else mu_vi[j]*Ex_F2[i,j]
+deriv(Ex_F2_dead[2:spor_len, 1:eff_len]) =   if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) mu_vi[j]*Ex_F2[i,j] else mu_vi[j]*Ex_F2[i,j]
+
+deriv(Ix_F1_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len)) mu_vi[i]*Ix_F1[i] else mu_vi[i]*Ix_F1[i]
+deriv(Ix_F2_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len)) mu_vi[i]*Ix_F2[i] else mu_vi[i]*Ix_F2[i]
 
 
 dim(avhc_i) <- num_int
@@ -662,9 +690,10 @@ output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
 output(av_mosq[]) <- TRUE
-output(av_mosq_sum) <- av_mosq_sum
-output(av_human_sum) <- av_human_sum
-output(av_alt_host) <- av_alt_host
+output(mu_vi[]) <- TRUE # added by Nilani
+output(av_mosq_sum) <- av_mosq_sum #nilani
+output(av_human_sum) <- av_human_sum #nilani
+output(av_alt_host) <- av_alt_host #nilani
 output(av) <- av
 output(IVRM_sr) <- IVRM_sr
 output(Sxtot) <- Sxtot
@@ -677,4 +706,10 @@ output(fv) <- fv
 output(EIR[]) <- TRUE
 output(itn_cov) <- itn_cov
 output(ivm_cov) <- ivm_cov
-output(mvxtot) <- mvxtot
+output(mvxtot) <- mvxtot #nilani
+output(FOIv) <- FOIv
+output(lag_FOIv) <- lag_FOIv
+output(d_ITN0) <- d_ITN0
+output(r_ITN0) <- r_ITN0
+output(ITN_decay)<- ITN_decay
+output(itn_loss) <- itn_loss
