@@ -715,3 +715,4 @@ output(d_ITN0) <- d_ITN0
 output(r_ITN0) <- r_ITN0
 output(ITN_decay)<- ITN_decay
 output(itn_loss) <- itn_loss
+output(mx_dead) <- mx_dead
