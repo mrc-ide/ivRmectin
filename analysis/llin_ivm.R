@@ -132,7 +132,7 @@ create_ITN_cov_loop <- function(itn_cov_in){
   return(output)
 }
 
-itn_cov_vector <- seq(0, 1, 0.25)
+itn_cov_vector <- seq(0, 8, 0.2)
 
 out_lapply_list <- lapply(itn_cov_vector, create_ITN_cov_loop) #loop through all parameter values
 
@@ -181,7 +181,7 @@ create_ivm_itn_cov_loop <- function(itn_ivm_param){
   return(output)
 }
 
-ivm_cov_vector <- seq(0, 1, 0.25)
+ivm_cov_vector <- seq(0, 8, 0.2)
 
 #make an empty list
 param_list <- list()
@@ -287,13 +287,13 @@ write.csv(out_df_3, file = "data/out_df_3.csv", row.names = FALSE)
 create_ivm_itn_type_vec <- function(itn_type_ivm_param){
   d_ITN0_in <- itn_type_ivm_param[1]
   r_ITN0_in <- itn_type_ivm_param[2]
-  #ivm_cov_in <-itn_type_ivm_param[3]
+  ivm_cov_in <-itn_type_ivm_param[3]
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide.R",
     #num_int = 1,
     num_int = 2, # number of vector control (IRS and ITN) population groups
     ITN_IRS_on = 100,
-    itn_cov = 0.6,
+    itn_cov = 0.8,
     #het_brackets = 5, # number of heterogeneous biting categories
     #age = init_age, # the different age classes to be ran within the model
     init_EIR = init_EIR, # the Entomological Innoculation Rate
@@ -326,7 +326,10 @@ param_list <- list()
                         #ivm_cov = ivm_cov_vector)
 
 #can't use expand grid here because d_ITN0 and r_ITN0 are correlated!
-param_df <- data.frame(d_ITN0 = d_ITN0_vector, r_ITN0 = r_ITN0_vector)
+param_df<- expand.grid(d_ITN0 = d_ITN0_vector, ivm_cov = ivm_cov_vector)
+param_df <- param_df %>%
+  mutate(r_ITN0 = 1-d_ITN0) %>%
+  select(d_ITN0, r_ITN0, ivm_cov)
 
 
 for(i in seq_len(nrow(param_df))){
