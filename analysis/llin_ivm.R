@@ -39,7 +39,7 @@ source("R/mda_ivm_functions.R")
 
 runfun <- function(mod_name){
   mod <- mod_name$generator$new(user= mod_name$state, use_dde = TRUE)
-  modx <- mod$run(t = 1:time_period, atol = 1e-8, rtol = 1e-8)
+  modx <- mod$run(t = 1:time_period, atol = 1e-9, rtol = 1e-10)
   op<- mod$transform_variables(modx)
   return(op)
 }
@@ -79,6 +79,10 @@ mod_1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_e
 #run Hannah's model
 res1 <- runfun(mod_1)
 
+df <- as.data.frame(res1)
+
+ggplot(df, aes(x = t, y = mvx_dead))+
+  geom_point()
 
 #IVM and nets (net-cov 85%)
 mod_2 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
@@ -135,11 +139,11 @@ out_lapply_list <- lapply(itn_cov_vector, create_ITN_cov_loop) #loop through all
 res_out_list <- lapply(out_lapply_list, runfun) #put these values into the model
 
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
-
+require(tidyverse)
 out_df <- do.call(rbind,
                   sapply(1:length(itn_cov_vector), function(x){
                     as.data.frame(res_out_list[[x]]) %>%
-                      select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot) %>%
+                      select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, Sx_dead, Ex_dead, Ix_dead, mvx_dead) %>%
                       mutate(ref = x)
                   }, simplify = F))
 
@@ -151,7 +155,7 @@ write.csv(out_df, file = "data/out_df.csv", row.names = FALSE)
 #see plot 1 and 2 in llin_ivm_plots.R
 
 
-#get different combinations of itn cov and llin cov parameters
+#get different combinations of ivn cov and llin cov parameters
 create_ivm_itn_cov_loop <- function(itn_ivm_param){
   itn_cov_in <- itn_ivm_param[1]
   ivm_cov_in <-itn_ivm_param[2]
@@ -196,7 +200,7 @@ out_2_list <- lapply(param_list, create_ivm_itn_cov_loop) #putting param list in
 res_out_2_list <- lapply(out_2_list, runfun)
 #UP TO HERE
 
-res_out_2_atol <- lapply(out_2_list, runfun_atol)
+
 
 
 #go through and save key parameters
@@ -205,7 +209,7 @@ res_out_2_atol <- lapply(out_2_list, runfun_atol)
 out_df_2 <- do.call(rbind,
                   sapply(1:(length(itn_cov_vector)*length(ivm_cov_vector)), function(x){
                     as.data.frame(res_out_2_list[[x]]) %>%
-                     # select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv) %>%
+                      select(t, mv, avhc, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, Sx_dead, Ex_dead, Ix_dead, mvx_dead) %>%
                       mutate(ref = x)
                   }, simplify = F))
 
@@ -269,7 +273,7 @@ require(tidyverse)
 out_df_3 <- do.call(rbind,
                     sapply(1:(length(itn_cov_vector)*length(ivm_cov_vector)), function(x){
                       as.data.frame(res_out_3_list[[x]]) %>%
-                        select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv) %>%
+                        select(t, mv, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv, Sx_dead, Ex_dead, Ix_dead, mvx_dead) %>%
                         mutate(ref = x)
                     }, simplify = F))
 
@@ -333,12 +337,11 @@ out_4_list <- lapply(param_list, create_ivm_itn_type_vec) #putting param list in
 
 #run it
 res_out_4_list <- lapply(out_4_list, runfun)
-res_out_4_list[[1]]$d
 out_df_4<- do.call(rbind,
                     sapply(1:(length(d_ITN0_vector)), function(x){
                       as.data.frame(res_out_4_list[[x]]) %>%
                         select(t, mv, Q, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv,
-                               d_ITN0, d_ITN, r_ITN0, r_ITN, s_ITN, ITN_decay, itn_loss) %>%
+                               d_ITN0, d_ITN, r_ITN0, r_ITN, s_ITN, ITN_decay, itn_loss, Sx_dead, Ex_dead, Ix_dead, mvx_dead) %>%
                         mutate(ref = x)
                     }, simplify = F))
 
