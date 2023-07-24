@@ -39,7 +39,7 @@ source("R/mda_ivm_functions.R")
 
 runfun <- function(mod_name){
   mod <- mod_name$generator$new(user= mod_name$state, use_dde = TRUE)
-  modx <- mod$run(t = 1:time_period, atol = 1e-9, rtol = 1e-10)
+  modx <- mod$run(t = 1:time_period)
   op<- mod$transform_variables(modx)
   return(op)
 }
