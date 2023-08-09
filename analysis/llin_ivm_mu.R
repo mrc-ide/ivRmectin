@@ -756,23 +756,31 @@ IG2_nets_df <- read.csv(IG2_nets, header = TRUE)
 pyr_only_df <- read.csv(pyr_only, header = TRUE)
 pbo_nets_df <- read.csv(pbo_nets, header = TRUE)
 
-IG2_d_ITN0 <- IG2_nets_df$dn0_med
 
-pyr_d_ITN0 <- pyr_only_df$dn0_med
-
-pbo_d_ITN0 <- pbo_nets_df$dn0_med
-
-#modify the dfs so that the gamma for pbos and pyrrole are same as pyr only
+#modify the dfs so that the gamma for pbos and pyrrole are same as pyr only and only have the no resistance scenario
 IG2_nets_df <- IG2_nets_df %>%
   mutate(gamman_lo10 = pyr_only_df$gamman_lo10,
          gamman_med = pyr_only_df$gamman_med,
-         gamman_up90 = pyr_only_df$gamman_up90)
+         gamman_up90 = pyr_only_df$gamman_up90) %>%
+  filter(resistance == 0)
 
 
 pbo_nets_df <- pbo_nets_df %>%
   mutate(gamman_lo10 = pyr_only_df$gamman_lo10,
          gamman_med = pyr_only_df$gamman_med,
-         gamman_up90 = pyr_only_df$gamman_up90)
+         gamman_up90 = pyr_only_df$gamman_up90) %>%
+  filter(resistance == 0)
+
+
+pyr_only_df <- pyr_only_df %>%
+  filter(resistance == 0)
+
+
+IG2_d_ITN0 <- IG2_nets_df$dn0_med
+
+pyr_d_ITN0 <- pyr_only_df$dn0_med
+
+pbo_d_ITN0 <- pbo_nets_df$dn0_med
 
 #ivm_cov_vector <- seq(0, 1, 0.25)
 
@@ -790,37 +798,36 @@ itn_cov_vector <- seq(0, 0.8, 0.2)
 
 #only use expand grid on the ivm_cov and dn0, because rn0 is correlated with dn0 so we add it in via left_join
 IG2_param_df_crit <- expand.grid(dn0_med = IG2_d_ITN0, itn_cov = itn_cov_vector) #606 rows
+
 IG2_param_df <- left_join(IG2_param_df_crit,
-                          IG2_nets_df %>% dplyr::select(dn0_med, rn0_med, resistance, gamman_med),
+                          IG2_nets_df %>% dplyr::select(dn0_med, rn0_med),
                           by = c("dn0_med")) %>%
   mutate(net_type = "IG2") %>%
-  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
+  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med)
 
 #repeat for pyrethroid nets
 pyr_param_df_crit <- expand.grid(dn0_med = pyr_d_ITN0, itn_cov = itn_cov_vector)
 pyr_param_df <- left_join(pyr_param_df_crit,
-                          pyr_only_df %>% dplyr::select(dn0_med, rn0_med, resistance, gamman_med),
+                          pyr_only_df %>% dplyr::select(dn0_med, rn0_med),
                           by = c("dn0_med")) %>%
   mutate(net_type = "pyrethroid only") %>%
-  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
+  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med)
 
 #repeat for pbo nets
 pbo_param_df_crit <- expand.grid(dn0_med = pbo_d_ITN0, itn_cov = itn_cov_vector)
 pbo_param_df <- left_join(pbo_param_df_crit,
-                          pbo_nets_df %>% dplyr::select(dn0_med, rn0_med, resistance, gamman_med),
+                          pbo_nets_df %>% dplyr::select(dn0_med, rn0_med),
                           by = c("dn0_med")) %>%
   mutate(net_type = "pyrethroid pbo") %>%
-  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
+  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med)
 
-#select a few resistance values: "resistance" 0%, 20%, 60% and 80%
-IG2_param_df_filt <- IG2_param_df %>%
-  filter(resistance %in% c(0, 0.5))
+#for now, no resistance, but could do filtration here of other net types etc
+IG2_param_df_filt <- IG2_param_df
 
-pyr_param_df_filt <- pyr_param_df %>%
-  filter(resistance %in% c(0, 0.5))
+pyr_param_df_filt <- pyr_param_df
 
-pbo_param_df_filt <- pbo_param_df %>%
-  filter(resistance %in% c(0, 0.5))
+pbo_param_df_filt <- pbo_param_df
+
 
 #conversions to numeric for each df
 for(i in seq_len(nrow(IG2_param_df_filt))){
@@ -838,11 +845,14 @@ for(i in seq_len(nrow(pbo_param_df_filt))){
 
 #function for looping through net coverages and net types
 
+#don't need to hardcode the half life as it is in the model_parameters file
+#will need to put changes in here when add in resistance etc
+
 create_itn_type_vec <- function(itn_type_ivm_param){
   d_ITN0_in <- itn_type_ivm_param[1]
-  itn_cov_in <-itn_type_ivm_param[3]
-  r_ITN0_in <- itn_type_ivm_param[2]
-  itn_half_life <- itn_type_ivm_param[5]
+  itn_cov_in <-itn_type_ivm_param[2]
+  r_ITN0_in <- itn_type_ivm_param[3]
+  #itn_half_life_in <- itn_type_ivm_param[4]*365
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide.R",
     #num_int = 1,
@@ -863,52 +873,47 @@ create_itn_type_vec <- function(itn_type_ivm_param){
     IVRM_start = ivm_parms1$IVRM_start ,
     d_ITN0 = d_ITN0_in,
     r_ITN0 = r_ITN0_in,
-    itn_half_life = itn_half_line_in
   )
   return(output)
 }
-
-
 
 IG2_out_list <- lapply(IG2_param_list, create_itn_type_vec) #putting param list into the function to generate parameter set
 pyr_out_list <- lapply(pyr_param_list, create_itn_type_vec)
 pbo_out_list <- lapply(pbo_param_list, create_itn_type_vec)
 
-#up to here
-
 
 #run it
-IG2_res_out_4_list <- lapply(IG2_out_4_list, runfun)
-pyr_res_out_4_list <- lapply(pyr_out_4_list, runfun)
-pbo_res_out_4_list <- lapply(pbo_out_4_list, runfun)
+IG2_res_out_list <- lapply(IG2_out_list, runfun)
+pyr_res_out_list <- lapply(pyr_out_list, runfun)
+pbo_res_out_list <- lapply(pbo_out_list, runfun)
 
 
-IG2_out_df_4<- do.call(rbind,
-                       sapply(1:(length(d_ITN0_vector)), function(x){
-                         as.data.frame(IG2_res_out_4_list[[x]]) %>%
-                           select(t, mv, Q, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv,
-                                  d_ITN0, d_ITN, r_ITN0, r_ITN, s_ITN, ITN_decay, itn_loss, Sx_dead, Ex_dead, Ix_dead, mvx_dead, resistance, net_type) %>%
-                           mutate(ref = x)
+IG2_out_df<- do.call(rbind,
+                       sapply(1:(length(itn_cov_vector)), function(x){
+                         as.data.frame(IG2_res_out_list[[x]]) %>%
+                           select(t, mv, mu, avhc, EIR_tot, itn_cov) %>%
+                           mutate(ref = x,
+                                  net_type = "IG2")
                        }, simplify = F))
 
-write.csv(IG2_out_df_4, file = "data/out_df_4_IG2.csv", row.names = FALSE)
+write.csv(IG2_out_df, file = "data/llin_ivm_muh/IG2_df_nores.csv", row.names = FALSE)
 
-pyr_out_df_4 <- do.call(rbind,
-                        sapply(1:(length(d_ITN0_vector)), function(x){
-                          as.data.frame(pyr_res_out_4_list[[x]]) %>%
-                            select(t, mv, Q, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv,
-                                   d_ITN0, d_ITN, r_ITN0, r_ITN, s_ITN, ITN_decay, itn_loss, Sx_dead, Ex_dead, Ix_dead, mvx_dead, resistance, net_type) %>%
-                            mutate(ref = x)
+pyr_out_df <- do.call(rbind,
+                        sapply(1:(length(itn_cov_vector)), function(x){
+                          as.data.frame(pyr_res_out_list[[x]]) %>%
+                            select(t, mv,mu, avhc, EIR_tot, itn_cov) %>%
+                            mutate(ref = x,
+                                   net_type = "pyr_only")
                         }, simplify = F))
 
-write.csv(pyr_out_df_4, file = "data/out_df_4_pyr.csv", row.names = FALSE)
+write.csv(pyr_out_df, file = "data/llin_ivm_muh/pyr_df_nores.csv", row.names = FALSE)
 
-pbo_out_df_4 <- do.call(rbind,
-                        sapply(1:(length(d_ITN0_vector)), function(x){
-                          as.data.frame(pbo_res_out_4_list[[x]]) %>%
-                            select(t, mv, Q, avhc, av_mosq_sum, itn_cov, ivm_cov, Sxtot, Extot, Ixtot, mvxtot, FOIv, lag_FOIv,
-                                   d_ITN0, d_ITN, r_ITN0, r_ITN, s_ITN, ITN_decay, itn_loss, Sx_dead, Ex_dead, Ix_dead, mvx_dead, resistance, net_type) %>%
-                            mutate(ref = x)
+pbo_out_df <- do.call(rbind,
+                        sapply(1:(length(itn_cov_vector)), function(x){
+                          as.data.frame(pbo_res_out_list[[x]]) %>%
+                            select(t, mv,mu, avhc, EIR_tot, itn_cov) %>%
+                            mutate(ref = x,
+                                   net_type = "pbo")
                         }, simplify = F))
 
-write.csv(pbo_out_df_4, file = "data/out_df_4_pbo.csv", row.names = FALSE)
+write.csv(pbo_out_df, file = "data/llin_ivm_muh/pbo_df_nores.csv", row.names = FALSE)
