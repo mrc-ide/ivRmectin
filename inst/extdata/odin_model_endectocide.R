@@ -230,6 +230,7 @@ dim(rel_foi) <- nh
 rel_foi[] <- user()
 dim(EIR) <- c(na,nh,num_int)
 EIR[,,] <- av_human[k] * rel_foi[j] * foi_age[i] * Ivtot/omega
+EIR_tot <- sum(EIR[,,])
 output(Ivout) <- Ivtot
 
 output(omega) <- omega
@@ -347,6 +348,20 @@ Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
 
 mvx_dead = Sx_dead + Ex_dead + Ix_dead
 
+#track non-ivm killed mosquitoes
+Sv_dead = sum(Sv_dead) + sum(Sv_F1_dead) + sum(Sv_F2_dead)
+Ev_dead = sum(Ev_F1_dead) + sum(Ev_F2_dead)
+Iv_dead = sum(Iv_F1_dead) + sum(Iv_F2_dead)
+
+#total number of mosq killed by non-ivm methods
+mv_dead = sum(Sv_dead) + sum(Ev_dead) + Iv_dead
+
+#total number of mosq killed (all interventions)
+mv_dead_all_int = sum(mv_dead) + sum(mvx_dead)
+
+#prop killed by ivm
+prop_killed_ivm <- mvx_dead/mv_dead_all_int
+
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
 cU <- user() # infectiousness U -> mosq
@@ -438,6 +453,20 @@ deriv(Ex_F2_dead[2:spor_len, 1:eff_len]) =   if (t >= (IVRM_sr + j -1)  &&  t < 
 deriv(Ix_F1_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len)) mu_vi[i]*Ix_F1[i] else mu_vi[i]*Ix_F1[i]
 deriv(Ix_F2_dead[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t < (IVRM_sr + eff_len)) mu_vi[i]*Ix_F2[i] else mu_vi[i]*Ix_F2[i]
 
+
+#track non-IVM-killed mosquitoes####
+deriv(Sv_dead) = mu*Sv
+deriv(Sv_F1_dead) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Sv_F1 else mu*Sv_F1
+deriv(Sv_F2_dead) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Sv_F2 else mu*Sv_F2
+
+deriv(Ev_F1_dead[1]) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Ev_F1[i] else mu*Ev_F1[i]
+deriv(Ev_F1_dead[2:spor_len]) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Ev_F1[i] else  mu*Ev_F1[i]
+
+deriv(Ev_F2_dead[1]) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Ev_F2[i] else mu*Ev_F2[i]
+deriv(Ev_F2_dead[2:spor_len]) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Ev_F2[i] else mu*Ev_F2[i]
+
+deriv(Iv_F1_dead) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Iv_F1 else mu*Iv_F1
+deriv(Iv_F2_dead) = if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len)) mu*Iv_F2 else mu*Iv_F2
 
 dim(avhc_i) <- num_int
 avhc_i[1:num_int] <- cov[i]*av_mosq[i]
@@ -706,6 +735,7 @@ output(x) <- x
 output(w[]) <- TRUE
 output(fv) <- fv
 output(EIR[]) <- TRUE
+output(EIR_tot) <- EIR_tot
 output(itn_cov) <- itn_cov
 output(ivm_cov) <- ivm_cov
 output(mvxtot) <- mvxtot #nilani
