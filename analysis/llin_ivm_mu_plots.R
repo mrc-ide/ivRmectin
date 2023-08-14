@@ -300,13 +300,14 @@ prop_killed_all <- do.call("rbind", list(HS_prop_killed_ivm_summary, HS_prop_kil
 prop_killed_all <- prop_killed_all %>%
   mutate(model_int = paste(model, int))
 
-ggplot(prop_killed_all, aes(x = itn_cov, y = prop_killed_ivm_tot , fill = as.factor(model_int)))+
+prop_killed_ivm_plot <- ggplot(prop_killed_all, aes(x = itn_cov, y = prop_killed_ivm_tot , fill = as.factor(model_int)))+
   geom_bar(stat = "identity", position = position_dodge())+
-  ylim(0, 1)+
   scale_fill_manual(name = "Model and intervention type", values = c("black", "grey",
                                                                      "blue", "turquoise"),
                     labels = c("HS model, LLIN", "HS model, UTN", "NC moodel, LLIN", "NC model, UTN"))+
   theme_minimal()+
   scale_x_continuous(breaks = c(0, 0.2, 0.4, 0.6, 0.8), minor_breaks = c(0, 0.2, 0.4, 0.6, 0.8), name = "Coverage (%)")+
-  ylab("Proportion of mosquites killed by ivermectin")
-
+  ylab("Proportion of mosquites killed by ivermectin")+
+  ylim(0, 0.5)+
+  theme(legend.position = c(0.85, 0.8))
+ggsave(prop_killed_ivm_plot, file = "plots/llin_ivm_muh/prop_killed_ivm_plot.svg")
