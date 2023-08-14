@@ -373,6 +373,9 @@ wh4 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_endec_mu_
 res4 <- runfun(wh4)
 df_4 <- as.data.frame(res4)
 
+ettie_rn0 = 0.409
+ettie_dn0 = 0.059
+
 
 #NC model with untreated net: dn0 = 0.059, rn0 = 0.409, sn0 = 0.532
 wh6 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_endec_mu_h_constant_ivm_uptake.R",
@@ -662,6 +665,100 @@ NC_out_df <- do.call(rbind,
 
 write.csv(NC_out_df, file = "data/llin_ivm_muh/NC_itn_cov_loop.csv", row.names = FALSE)
 
+
+#repeat proportions killed analysis but with UTN
+HS_ITN_cov_loop_utn <- function(itn_cov_in){
+  output <- ivRmectin::create_r_model(
+    odin_model_path = "inst/extdata/odin_model_endectocide.R",
+    #num_int = 1,
+    num_int = 2, # number of vector control (IRS and ITN) population groups
+    ITN_IRS_on = 100,
+    itn_cov = itn_cov_in,
+    #het_brackets = 5, # number of heterogeneous biting categories
+    #age = init_age, # the different age classes to be ran within the model
+    init_EIR = init_EIR, # the Entomological Innoculation Rate
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick", # Admin 2 setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    ttt = ivm_parms1$ttt, # model specific parameter to control timing of endectocide delivery
+    eff_len = ivm_parms1$eff_len, # number of days after receiving endectocide that HR is higher
+    haz = ivm_parms1$haz, # hazard ratio for each off the eff_len number of days
+    ivm_cov_par = ivm_parms1$ivm_cov_par, # proportion of popuulation receiving the endectocide
+    ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
+    ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
+    IVRM_start = ivm_parms1$IVRM_start,
+    d_ITN0 = ettie_dn0,
+    r_ITN0 = ettie_rn0
+  )
+  return(output)
+}
+
+itn_cov_vector <- seq(0, 0.8, 0.2)
+
+HS_out_list_utn <- lapply(itn_cov_vector, HS_ITN_cov_loop_utn) #loop through all parameter values
+
+res_HS_out_list_utn <- lapply(HS_out_list_utn, runfun) #put these values into the model
+
+#now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
+require(tidyverse)
+HS_out_df_utn <- do.call(rbind,
+                     sapply(1:length(itn_cov_vector), function(x){
+                       as.data.frame(res_HS_out_list_utn[[x]]) %>%
+                         select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead) %>%
+                         mutate(ref = x)
+                     }, simplify = F))
+
+#go from wide to long
+#out_df_long <- gather(out_df, parameter, value, itn_cov:ref, factor_key = TRUE)
+
+write.csv(HS_out_df_utn, file = "data/llin_ivm_muh/HS_utn_cov_loop.csv", row.names = FALSE)
+
+
+NC_ITN_cov_loop_utn <- function(itn_cov_in){
+  output <- ivRmectin::create_r_model(
+    odin_model_path = "inst/extdata/odin_endec_mu_h_constant_ivm_uptake.R",
+    #num_int = 1,
+    num_int = 2, # number of vector control (IRS and ITN) population groups
+    ITN_IRS_on = 100,
+    itn_cov = itn_cov_in,
+    #het_brackets = 5, # number of heterogeneous biting categories
+    #age = init_age, # the different age classes to be ran within the model
+    init_EIR = init_EIR, # the Entomological Innoculation Rate
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick", # Admin 2 setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    ttt = ivm_parms1$ttt, # model specific parameter to control timing of endectocide delivery
+    eff_len = ivm_parms1$eff_len, # number of days after receiving endectocide that HR is higher
+    haz = ivm_parms3$haz, # hazard ratio for each off the eff_len number of days. SET TO 1
+    ivm_cov_par = ivm_parms1$ivm_cov_par, # proportion of popuulation receiving the endectocide
+    ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
+    ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
+    IVRM_start = ivm_parms1$IVRM_start,
+    avhc = avhc_constant,
+    mu_h = 0.26,
+    d_ITN0 = ettie_dn0,
+    r_ITN0 = ettie_rn0
+  )
+  return(output)
+}
+
+NC_out_list_utn <- lapply(itn_cov_vector, NC_ITN_cov_loop_utn) #loop through all parameter values
+
+res_NC_out_list_utn <- lapply(NC_out_list_utn, runfun) #put these values into the model
+
+#now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
+require(tidyverse)
+NC_out_df_utn <- do.call(rbind,
+                     sapply(1:length(itn_cov_vector), function(x){
+                       as.data.frame(res_NC_out_list_utn[[x]]) %>%
+                         select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead) %>%
+                         mutate(ref = x)
+                     }, simplify = F))
+
+#go from wide to long
+#out_df_long <- gather(out_df, parameter, value, itn_cov:ref, factor_key = TRUE)
+
+write.csv(NC_out_df_utn, file = "data/llin_ivm_muh/NC_utn_cov_loop.csv", row.names = FALSE)
+
+#end
 
   #does the change in mu exceed the change in avhc, which is why we don't see a difference between explicit model of refeeding delay vs not
 #PLOT 2
