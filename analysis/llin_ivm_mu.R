@@ -663,36 +663,6 @@ NC_out_df <- do.call(rbind,
 write.csv(NC_out_df, file = "data/llin_ivm_muh/NC_itn_cov_loop.csv", row.names = FALSE)
 
 
-#across itn coverages in the HS model, how does the proportion of ivm-killed mosquitoes change?
-
-HS_prop_killed_ivm_summary <- HS_out_df %>%
-  group_by(itn_cov) %>%
-  summarise(mv_dead_tot = sum(mv_dead),
-            mvx_dead_tot = sum(mvx_dead)) %>%
-  mutate(prop_killed_ivm_tot = (mvx_dead_tot/mv_dead_tot)*100) %>%
-  mutate(rel_diff_prop_killed_ivm = (prop_killed_ivm_tot[1] - prop_killed_ivm_tot)/prop_killed_ivm_tot[1],
-         model = "HS")
-
-
-NC_prop_killed_ivm_summary <- NC_out_df %>%
-  group_by(itn_cov) %>%
-  summarise(mv_dead_tot = sum(mv_dead),
-            mvx_dead_tot = sum(mvx_dead)) %>%
-  mutate(prop_killed_ivm_tot = (mvx_dead_tot/mv_dead_tot)*100) %>%
-  mutate(rel_diff_prop_killed_ivm = (prop_killed_ivm_tot[1] - prop_killed_ivm_tot)/prop_killed_ivm_tot[1],
-         model ="NC")
-
-
-prop_killed_ivm_summary <- rbind(HS_prop_killed_ivm_summary, NC_prop_killed_ivm_summary)
-
-prop_killed_ivm_plot <- ggplot(prop_killed_ivm_summary, aes(x = itn_cov, y = prop_killed_ivm_tot, fill = as.factor(model)))+
-  geom_bar(stat = "identity", position = position_dodge())+
-  ylim(0, 1)+
-  theme_minimal()+
-  labs(x = "LLIN coverage", y = "Proportion of mosquitoes \n killed by ivermectin",
-       fill = "Model type")
-
-
   #does the change in mu exceed the change in avhc, which is why we don't see a difference between explicit model of refeeding delay vs not
 #PLOT 2
 #plot of avhc over time - this is the normalised value and what clearly affects the ivm uptake
