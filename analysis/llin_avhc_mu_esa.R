@@ -67,6 +67,59 @@ ivm_parms3 <- ivm_fun(IVM_start_times = IVM_start,# time endectocide delivery oc
                       ivm_min_age = 5, # youngest age group receiving endectocide
                       ivm_max_age = 90) # oldest age group receiving endectocide
 
+#run Hannah's model, output the avhc and mosquito density over time
+wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
+                                  #num_int = 1,
+                                  num_int = 1,
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms1$ttt,
+                                  eff_len = ivm_parms1$eff_len,
+                                  haz = ivm_parms1$haz,
+                                  ivm_cov_par = ivm_parms1$ivm_cov_par,
+                                  ivm_min_age = ivm_parms1$ivm_min_age,
+                                  ivm_max_age = ivm_parms1$ivm_max_age,
+                                  IVRM_start = ivm_parms1$IVRM_start)
+
+#run Hannah's model
+res0 <- runfun(wh0)
+df_0 <- as.data.frame(res0)
+
+#NC model
+#ivm only, no nets
+wh2 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_endec_mu_h_model.R",
+                                  #num_int = 1,
+                                  num_int = 1,
+                                  #het_brackets = 5,
+                                  #age = init_age,
+                                  init_EIR = 100,
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick",
+                                  ttt = ivm_parms1$ttt,
+                                  eff_len = ivm_parms1$eff_len,
+                                  haz = ivm_parms3$haz,
+                                  ivm_cov_par = ivm_parms1$ivm_cov_par,
+                                  ivm_min_age = ivm_parms1$ivm_min_age,
+                                  ivm_max_age = ivm_parms1$ivm_max_age,
+                                  mu_h = 0.26,
+                                  IVRM_start = ivm_parms1$IVRM_start)
+
+#run Hannah's model with mu_h of 0.26
+res2 <- runfun(wh2)
+df_2 <- as.data.frame(res2)
+
+#df_0 : Hannah's model, no nets, ivm
+df_0_epi <- df_0 %>%
+  select(t, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
+write.csv(df_0_epi, file = "data/llin_ivm_muh/df_0_epi.csv", row.names = FALSE)
+
+#df2: Nilani's model, no nets, ivm
+df_2_epi <- df_2 %>%
+  select(t, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
+write.csv(df_2_epi, file = "data/llin_ivm_muh/df_2_epi.csv", row.names = FALSE)
 
 #get net eff profiles for different net types
 #going to look at resistance 10%, 50%, 70%, 90%
@@ -211,7 +264,7 @@ res_pyr_out <- lapply(pyr_out_list, runfun) #put these values into the model
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 pyr_out_df_HS <- do.call(rbind,
-                      sapply(1:length(itn_cov_vector), function(x){
+                      sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                         as.data.frame(res_pyr_out[[x]]) %>%
                           select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                  d_ITN0, r_ITN0) %>%
@@ -232,7 +285,7 @@ res_IG2_out <- lapply(IG2_out_list, runfun) #put these values into the model
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 IG2_out_df_HS <- do.call(rbind,
-                         sapply(1:length(itn_cov_vector), function(x){
+                         sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_IG2_out[[x]]) %>%
                              select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
@@ -252,7 +305,7 @@ res_pyr_pbo_out <- lapply(pyr_pbo_out_list, runfun) #put these values into the m
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 pyr_pbo_out_df_HS <- do.call(rbind,
-                         sapply(1:length(itn_cov_vector), function(x){
+                         sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_pyr_pbo_out[[x]]) %>%
                              select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
@@ -327,7 +380,7 @@ res_pyr_out_NC <- lapply(pyr_out_list_NC, runfun) #put these values into the mod
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 pyr_out_df_NC <- do.call(rbind,
-                         sapply(1:length(itn_cov_vector), function(x){
+                         sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_pyr_out_NC[[x]]) %>%
                              select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
@@ -348,7 +401,7 @@ res_IG2_out_NC <- lapply(IG2_out_list_NC, runfun) #put these values into the mod
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 IG2_out_df_NC <- do.call(rbind,
-                         sapply(1:length(itn_cov_vector), function(x){
+                         sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_IG2_out_NC[[x]]) %>%
                              select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
@@ -368,7 +421,7 @@ res_pyr_pbo_out_NC <- lapply(pyr_pbo_out_list_NC, runfun) #put these values into
 #now go through the res_out_list and save key parameters: av_mosq, LLIN cov, t, Sxtot, Extot, Ixtot
 require(tidyverse)
 pyr_pbo_out_df_NC <- do.call(rbind,
-                             sapply(1:length(itn_cov_vector), function(x){
+                             sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                                as.data.frame(res_pyr_pbo_out_NC[[x]]) %>%
                                  select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                         d_ITN0, r_ITN0) %>%
