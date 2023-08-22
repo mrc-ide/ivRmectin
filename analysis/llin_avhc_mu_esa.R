@@ -113,12 +113,12 @@ df_2 <- as.data.frame(res2)
 
 #df_0 : Hannah's model, no nets, ivm
 df_0_epi <- df_0 %>%
-  select(t, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
+  select(t, mu, avhc, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
 write.csv(df_0_epi, file = "data/llin_ivm_muh/df_0_epi.csv", row.names = FALSE)
 
 #df2: Nilani's model, no nets, ivm
 df_2_epi <- df_2 %>%
-  select(t, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
+  select(t, mu, avhc, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead)
 write.csv(df_2_epi, file = "data/llin_ivm_muh/df_2_epi.csv", row.names = FALSE)
 
 #get net eff profiles for different net types
@@ -244,7 +244,7 @@ require(tidyverse)
 utn_out_df_HS <- do.call(rbind,
                      sapply(1:length(itn_cov_vector), function(x){
                        as.data.frame(res_utn_out[[x]]) %>%
-                         select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                         select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                 d_ITN0, r_ITN0) %>%
                          mutate(ref = x, net_type = "UTN")
                      }, simplify = F))
@@ -266,7 +266,7 @@ require(tidyverse)
 pyr_out_df_HS <- do.call(rbind,
                       sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                         as.data.frame(res_pyr_out[[x]]) %>%
-                          select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                          select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                  d_ITN0, r_ITN0) %>%
                           mutate(ref = x, net_type = "pyr_only")
                       }, simplify = F))
@@ -287,7 +287,7 @@ require(tidyverse)
 IG2_out_df_HS <- do.call(rbind,
                          sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_IG2_out[[x]]) %>%
-                             select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
                              mutate(ref = x, net_type = "IG2")
                          }, simplify = F))
@@ -307,7 +307,7 @@ require(tidyverse)
 pyr_pbo_out_df_HS <- do.call(rbind,
                          sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_pyr_pbo_out[[x]]) %>%
-                             select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
                              mutate(ref = x, net_type = "pyr_pbo")
                          }, simplify = F))
@@ -360,7 +360,7 @@ require(tidyverse)
 utn_out_df_NC <- do.call(rbind,
                          sapply(1:length(itn_cov_vector), function(x){
                            as.data.frame(res_utn_out_NC[[x]]) %>%
-                             select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
                              mutate(ref = x, net_type = "UTN")
                          }, simplify = F))
@@ -382,7 +382,7 @@ require(tidyverse)
 pyr_out_df_NC <- do.call(rbind,
                          sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_pyr_out_NC[[x]]) %>%
-                             select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
                              mutate(ref = x, net_type = "pyr_only")
                          }, simplify = F))
@@ -403,7 +403,7 @@ require(tidyverse)
 IG2_out_df_NC <- do.call(rbind,
                          sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                            as.data.frame(res_IG2_out_NC[[x]]) %>%
-                             select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                     d_ITN0, r_ITN0) %>%
                              mutate(ref = x, net_type = "IG2")
                          }, simplify = F))
@@ -423,7 +423,7 @@ require(tidyverse)
 pyr_pbo_out_df_NC <- do.call(rbind,
                              sapply(1:(length(itn_cov_vector)*length(res_vector)), function(x){
                                as.data.frame(res_pyr_pbo_out_NC[[x]]) %>%
-                                 select(t, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
+                                 select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5, prop_killed_ivm, mv_dead, mvx_dead,
                                         d_ITN0, r_ITN0) %>%
                                  mutate(ref = x, net_type = "pyr_pbo")
                              }, simplify = F))
