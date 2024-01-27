@@ -480,7 +480,7 @@ dim(avhc_i) <- num_int
 avhc_i[1:num_int] <- cov[i]*av_mosq[i]
 #avhc <- sum(avhc_i)   # mean biting rate of mosquitoes on humans in the presence of vector control
 #avhc <- 0.3066667
-avhc <- av
+avhc <- (1/3)*Q0
 
 ##------------------------------------------------------------------------------
 ###################
