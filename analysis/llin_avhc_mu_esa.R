@@ -17,7 +17,7 @@ library(RColorBrewer)
 library(tidyverse)
 require(tidyverse)
 # Create a vector of age categories for the model
-#init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
+init_age <- c(0, 0.5, 1, 2, 3.5, 4, 5, 7.5, 10, 15, 20, 30, 40, 50, 60, 70, 80)
 
 # Provide a value of the annual EIR for this model run
 init_EIR <- 100 #low - 2, moderate - 15, high - 120

@@ -288,6 +288,9 @@ init_Iv <- user()
 initial(Sv) <- init_Sv * mv0
 initial(Sv_F1) = 0
 initial(Sv_F2) = 0
+initial(Sv_dead) = 0
+initial(Sv_F1_dead) = 0
+initial(Sv_F2_dead) = 0
 initial(Sx_F1[]) = 0
 initial(Sx_F2[]) = 0
 initial(Sx_F1_dead[]) = 0
@@ -295,6 +298,8 @@ initial(Sx_F2_dead[]) = 0
 
 initial(Ev_F1[]) = init_Ev/spor_len * mv0
 initial(Ev_F2[]) = 0 #init_Ev/spor_len * mv0/2
+initial(Ev_F1_dead[]) = 0
+initial(Ev_F2_dead[]) =0
 initial(Ex_F1[,]) = 0
 initial(Ex_F2[,]) = 0
 initial(Ex_F1_dead[,]) = 0
@@ -302,6 +307,8 @@ initial(Ex_F2_dead[,]) = 0
 
 initial(Iv_F1) = init_Iv *mv0
 initial(Iv_F2) = 0 #init_Iv *mv0/2
+initial(Iv_F1_dead) = 0
+initial(Iv_F2_dead) = 0
 initial(Ix_F1[]) = 0
 initial(Ix_F2[]) = 0
 initial(Ix_F1_dead[]) = 0
@@ -318,6 +325,8 @@ dim(Ix_F2_dead) = eff_len
 
 dim(Ev_F1) = spor_len
 dim(Ev_F2) = spor_len
+dim(Ev_F1_dead) = spor_len
+dim(Ev_F2_dead) = spor_len
 
 dim(Ex_F1) = c(spor_len, eff_len)
 dim(Ex_F2) = c(spor_len, eff_len)
@@ -348,19 +357,18 @@ Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
 
 mvx_dead = Sx_dead + Ex_dead + Ix_dead
 
-#track non-ivm killed mosquitoes
-Sv_dead = sum(Sv_dead) + sum(Sv_F1_dead) + sum(Sv_F2_dead)
-Ev_dead = sum(Ev_F1_dead) + sum(Ev_F2_dead)
-Iv_dead = sum(Iv_F1_dead) + sum(Iv_F2_dead)
+#track all-int killed mosquitoes
+Svtot_dead = Sv_dead + Sv_F1_dead + Sv_F2_dead + sum(Sx_F1_dead) + sum(Sx_F2_dead)
+Evtot_dead = sum(Ev_F1_dead) + sum(Ev_F2_dead) + sum(Ex_F1_dead) + sum(Ex_F2_dead)
+Ivtot_dead = Iv_F1_dead + Iv_F2_dead + sum(Ix_F1_dead) + sum(Ix_F2_dead) #4
+
 
 #total number of mosq killed by non-ivm methods
-mv_dead = sum(Sv_dead) + sum(Ev_dead) + Iv_dead
+mv_dead = Svtot_dead + Evtot_dead + Ivtot_dead
 
-#total number of mosq killed (all interventions)
-mv_dead_all_int = sum(mv_dead) + sum(mvx_dead)
 
 #prop killed by ivm
-prop_killed_ivm <- mvx_dead/mv_dead_all_int
+prop_killed_ivm <- mvx_dead/mv_dead
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -574,6 +582,8 @@ r_IRS0 <- user()
 r_ITN1 <- user()
 irs_loss <- user()
 itn_loss <- user()
+#mp_list$itn_loss <- log(2)/mp_list$itn_half_life
+#itn_half_life <- user()
 
 # Calculates decay for ITN/IRS
 ITN_decay = if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%ITN_interval) * itn_loss)
@@ -739,6 +749,8 @@ output(EIR_tot) <- EIR_tot
 output(itn_cov) <- itn_cov
 output(ivm_cov) <- ivm_cov
 output(mvxtot) <- mvxtot #nilani
+output(prop_killed_ivm) <- prop_killed_ivm
+output(mv_dead) <- mv_dead
 output(FOIv) <- FOIv
 output(lag_FOIv) <- lag_FOIv
 output(d_ITN0) <- d_ITN0
@@ -749,3 +761,6 @@ output(Sx_dead) <- Sx_dead
 output(Ex_dead) <- Ex_dead
 output(Ix_dead) <- Ix_dead
 output(mvx_dead) <- mvx_dead
+output(Q0) <- Q0
+output(bites_Bed) <- bites_Bed
+output(mv0) <- mv0

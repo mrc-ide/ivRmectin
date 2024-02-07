@@ -19,7 +19,7 @@ hazard_ratios <- ggplot(smit_hr, aes(x = day, y = d300))+
   xlab(string)+
   theme_minimal()+
   ylim(0, 10)
-ggsave(hazard_ratios, file = "plots/llin_ivm_muh//hazard_ratios.svg")
+#ggsave(hazard_ratios, file = "plots/llin_ivm_muh//hazard_ratios.svg")
 
 #plotting fit of NC model to HS model ####
 
@@ -99,7 +99,7 @@ pyr_NC_df <- read.csv("data/llin_ivm_muh/pyr_out_df_NC.csv", header = TRUE) %>%
   filter(itn_cov == 0.8)
 
 NC_ivm_LLIN_dynamics <- ggplot(NC_ivm_only, aes(x = t, y = EIR_tot))+
-  geom_line(aes(colour = "black"))+
+  geom_line(aes(colour = killed_pal[1]))+
   geom_line(data = pyr_NC_df, aes(x = t, y = EIR_tot, colour = as.factor(d_ITN0)))+
   ylim(-1, 100)+
   scale_x_continuous(limits = c(2920, 3285), breaks = breaks_plot, minor_breaks = breaks_plot, name = "Time (days)")+
@@ -113,7 +113,7 @@ NC_ivm_LLIN_dynamics <- ggplot(NC_ivm_only, aes(x = t, y = EIR_tot))+
   theme(legend.position = c(0.7, 0.85), legend.direction = "vertical")
 require(cowplot)
 ivm_llin_dynamics <- plot_grid(HS_ivm_LLIN_dynamics, NC_ivm_LLIN_dynamics, labels = c("A", "B"))
-ggsave(ivm_llin_dynamics, file = "plots/llin_ivm_muh/ivm_llin_dynamics.svg")
+#ggsave(ivm_llin_dynamics, file = "plots/llin_ivm_muh/ivm_llin_dynamics.svg")
 
 
 #proportion of dead mosquitoes across different net coverages
@@ -142,7 +142,7 @@ prop_killed_ivm_hs <- ggplot(prop_dead_HS, aes(x = itn_cov, y = prop_dead_ivm))+
   ylab("Proportion of mosquites killed by ivermectin")+
   theme_minimal()+
   ylim(0, 0.01)
-ggsave(prop_killed_ivm_hs, file = "plots/llin_ivm_muh/prop_killed_ivm_hs.svg")
+#ggsave(prop_killed_ivm_hs, file = "plots/llin_ivm_muh/prop_killed_ivm_hs.svg")
 
 utn_df_HS <- read.csv("data/llin_ivm_muh/utn_out_df_HS.csv") %>%
   group_by(itn_cov) %>%
@@ -178,7 +178,7 @@ prop_killed_int <- ggplot(prop_killed_all, aes(x = itn_cov, y = prop_dead_ivm , 
   ylim(0, 0.01)+
   theme(legend.position = c(0.65, 0.8))
 
-ggsave(prop_killed_int, file = "plots/llin_ivm_muh/prop_killed_int.svg")
+#ggsave(prop_killed_int, file = "plots/llin_ivm_muh/prop_killed_int.svg")
 
 ggplot(utn_df, aes(x = itn_cov, y = prop_dead_ivm, fill = as.factor(model)))+
   geom_bar(stat = "identity", position = position_dodge())+
@@ -302,7 +302,6 @@ net_summary <- do.call("rbind", list(pyr_summary_res, utn_summary,  pbo_summary_
 res_vector <- c(0, 0.1, 0.5, 0.7, 0.9)
 #cbPalette <- c("#D55E00", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7")
 bioassay_mort <- 1-res_vector
-
 net_summary_facet <- net_summary %>%
   separate(model, c("model", "net"))
 
@@ -320,7 +319,7 @@ net_labeller <- function(variable, value){
 }
 
 #across coverages and resistance profiles
-red_eir_nets <- ggplot(net_summary_facet, aes(x = itn_cov, y = rel_diff_ivm*100, fill = res))+
+rel_eir_nets <- ggplot(net_summary_facet, aes(x = itn_cov, y = rel_diff_ivm*100, fill = res))+
   geom_bar(stat = "identity", position = position_dodge())+
   #facet_grid(~fct_relevel(model,"HS pyr", "NC pyr", "HS PBO", "NC PBO", "HS IG2", "NC IG2", "HS UTN", "NC UTN"), cols = 2, rows = 3)+
   # xlab("Net coverage (%)")+
@@ -334,8 +333,31 @@ red_eir_nets <- ggplot(net_summary_facet, aes(x = itn_cov, y = rel_diff_ivm*100,
   theme_minimal()+
   theme(panel.spacing = unit(2, "lines"))+
   geom_hline(yintercept = 0, linetype = "solid", colour = "black")+
-  theme(legend.position = c(0.7, 0.1), legend.direction = "horizontal")
+  #theme(legend.position = c(0.7, 0.1), legend.direction = "horizontal")
+  theme(legend.position = "none")
 #ggsave(red_eir_nets, file = "plots/llin_ivm_muh/red_eir_nets.svg")
+
+
+abs_eir_nets <- ggplot(net_summary_facet, aes(x = itn_cov, y = abs_diff_ivm*100, fill = res))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  #facet_grid(~fct_relevel(model,"HS pyr", "NC pyr", "HS PBO", "NC PBO", "HS IG2", "NC IG2", "HS UTN", "NC UTN"), cols = 2, rows = 3)+
+  # xlab("Net coverage (%)")+
+  facet_grid(cols = vars(model), rows = vars(net),
+             labeller = net_labeller)+
+  #facet_wrap(~fct_relevel())
+  ylab("Absolute difference in EIR (%)")+
+  scale_fill_manual(name = "Resistance", values = cbPalette, labels = c("0%", "10%", "50%", "70%", "90%", "UTN"))+
+  #scale_fill_viridis_b(name = "Resistance", labels = c("0", "10%", "50%", "70%", "90%", "UTN") )+
+  scale_x_continuous(breaks = c(0, 0.2, 0.4, 0.6, 0.8), minor_breaks = c(0, 0.2, 0.4, 0.6, 0.8), name = "Coverage (%)")+
+  theme_minimal()+
+  theme(panel.spacing = unit(2, "lines"))+
+  geom_hline(yintercept = 0, linetype = "solid", colour = "black")+
+  theme(legend.position = c(0.6, 0.25), legend.direction = "horizontal")
+#ggsave(abs_eir_nets, file = "plots/llin_ivm_muh/abs_eir_nets.svg")
+
+
+eir_diff_nets <- plot_grid(rel_eir_nets, abs_eir_nets, ncol = 1, nrow = 2)
+#ggsave(eir_diff_nets, file = "plots/llin_ivm_muh/eir_diff_nets.svg")
 
 #avhc and mu plots
 

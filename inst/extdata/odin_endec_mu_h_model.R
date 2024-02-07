@@ -366,10 +366,9 @@ Svtot_dead = Sv_dead + Sv_F1_dead + Sv_F2_dead + sum(Sx_F1_dead) + sum(Sx_F2_dea
 
 mv = Svtot + Evtot + Ivtot
 
-#total number of mosq killed by non-ivm methods
+#all_int_killed
 mv_dead = Svtot_dead + Ivtot_dead + Evtot_dead
 
-#ivm killed mosquitoes
 Ix_tot = sum(Ix_F1) + sum(Ix_F2)
 Ix_dead = sum(Ix_F1_dead) + sum(Ix_F2_dead)
 
@@ -384,7 +383,7 @@ Sx_dead = sum(Sx_F1_dead) + sum(Sx_F2_dead)
 mvx_dead <- Sx_dead + Ex_dead + Ix_dead
 
 
-#prop killed by ivm
+#prop_killed_ivm
 prop_killed_ivm <- mvx_dead/mv_dead
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
@@ -456,7 +455,7 @@ deriv(Ev_F2[2:spor_len]) =   if (t >= (IVRM_sr)   && t < (IVRM_sr + eff_len))  1
 deriv(Ev_F2_dead [2:spor_len]) =  mu*Ev_F2[i]
 
 deriv(Ex_F1[1, 1:eff_len]) =            if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) FOIv*ivm_cov*Sv  - 1/tau_v*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j] - avhc*Ex_F1[i,j] else - 1/tau_v*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j]  - avhc*Ex_F1[i,j]
-deriv(Ex_F1_dead[1, 1:eff_len]) = mu_vi[j]*Ex_F1[i,j]
+#deriv(Ex_F1_dead[1, 1:eff_len]) = mu_vi[j]*Ex_F1[i,j]
 
 deriv(Ex_F1[2:spor_len, 1:eff_len]) =   if (t >= (IVRM_sr + j -1)  &&  t < (IVRM_sr + j ) && t < (IVRM_sr + eff_len)) 1/tau_v*Ex_F1[i-1,j] - 1/tau_v*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j] - avhc*Ex_F1[i,j] else  1/tau_v*Ex_F1[i-1,j]  - (1/tau_v + avhc)*Ex_F1[i,j] - mu_vi[j]*Ex_F1[i,j]
 deriv(Ex_F1_dead[2:spor_len, 1:eff_len]) = mu_vi[j]*Ex_F1[i,j]
@@ -481,10 +480,9 @@ deriv(Ix_F2[1:eff_len]) = if (t >= (IVRM_sr + i -1)  &&  t < (IVRM_sr + i) && t 
 deriv(Ix_F2_dead[1:eff_len]) = mu_vi[i]*Ix_F2[i]
 
 
-#dim(avhc_i) <- num_int
-#avhc_i[1:num_int] <- cov[i]*av_mosq[i]
-#avhc <- sum(avhc_i)   # mean biting rate of mosquitoes on humans in the presence of vector control
-avhc <- user()
+dim(avhc_i) <- num_int
+avhc_i[1:num_int] <- cov[i]*av_mosq[i]
+avhc <- sum(avhc_i)   # mean biting rate of mosquitoes on humans in the presence of vector control
 ##------------------------------------------------------------------------------
 ###################
 ## LARVAL STATES ##
@@ -729,27 +727,26 @@ output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
 output(K0) <- K0
 output(avhc) <- avhc
-output(mv_dead) <- mv_dead
+#output(mv_dead) <- mv_dead
 output(Ivtot) = Ivtot
 output(Evtot) = Evtot
 output(Svtot) = Svtot
-output(Svtot_dead) <- Svtot_dead
-output(Evtot_dead) <- Evtot_dead
-output(Ivtot_dead) <- Ivtot_dead
-output(Ix_dead) <- Ix_dead
-output(Ex_dead) <- Ex_dead
-output(Sx_dead) <- Sx_dead
+output(EIR_tot) = EIR_tot
+#output(Svtot_dead) <- Svtot_dead
+#output(Evtot_dead) <- Evtot_dead
+#output(Ivtot_dead) <- Ivtot_dead
+#output(Ix_dead) <- Ix_dead
+#output(Ex_dead) <- Ex_dead
+#output(Sx_dead) <- Sx_dead
 output(IVRM_sr) <- IVRM_sr
-output(EIR_tot) <- EIR_tot
 output(Sx_tot) <- Sx_tot
 output(Ex_tot) <- Ex_tot
 output(Ix_tot) <- Ix_tot
-output(mvx_dead) <- mvx_dead
+#output(IVM_dead) <- IVM_dead
 output(prop_killed_ivm) <- prop_killed_ivm
+output(mv_dead) <- mv_dead
+output(mvx_dead) <- mvx_dead
 output(mv0) <- mv0
 output(betaa) <- betaa
 output(mu_vi[]) <- mu_vi
 output(mu0) <- mu0
-output(itn_cov) <- itn_cov
-output(d_ITN0) <- d_ITN0
-output(r_ITN0) <- r_ITN0

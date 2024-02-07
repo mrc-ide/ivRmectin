@@ -130,7 +130,9 @@ create_ITN_cov_loop <- function(itn_cov_in){
     ivm_cov_par = 0, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
-    IVRM_start = ivm_parms1$IVRM_start
+    IVRM_start = ivm_parms1$IVRM_start,
+    d_ITN0 = pyr_only_dn0,
+    r_ITN0 = pyr_only_rn0
   )
   return(output)
 }
@@ -221,7 +223,7 @@ ivm_parms1 <- ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution ever
 
 mu_h_in = 0.257 #this is for 80% IVM coverage
 
-#IVM on, no nets####
+#IVM on, no nets#### (don't need to run this if then loop it)
 mod_1_UTN <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
                                     #num_int = 1,
                                     num_int = 1,
@@ -293,7 +295,9 @@ create_ITN_cov_loop <- function(itn_cov_in){
     ivm_cov_par = 0, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
-    IVRM_start = ivm_parms1$IVRM_start
+    IVRM_start = ivm_parms1$IVRM_start,
+    d_ITN0 = 0.059,
+    r_ITN0 = 0.409
   )
   return(output)
 }
@@ -343,7 +347,9 @@ create_ivm_itn_cov_loop <- function(itn_ivm_param){
     ivm_cov_par = ivm_cov_in, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
-    IVRM_start = ivm_parms1$IVRM_start
+    IVRM_start = ivm_parms1$IVRM_start,
+    d_ITN0 = pyr_only_dn0,
+    r_ITN0 = pyr_only_rn0
   )
   return(output)
 }
@@ -406,8 +412,10 @@ create_ivm_itn_cov_loop_evening_vec <- function(itn_ivm_param){
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
     IVRM_start = ivm_parms1$IVRM_start,
-    bites_Indoors = 0.5,
-    bites_Bed = 0.5
+    #bites_Indoors = 0.5,
+    bites_Bed = 0.65, #stephensi estimate from Arran's paper
+    d_ITN0 = pyr_only_dn0, #assuming same impact of nets on stephensi as gambiae
+    r_ITN0 = pyr_only_rn0
   )
   return(output)
 }
