@@ -6,5 +6,6 @@
 .xlsx
 plots/*
 analysis/*
+analysis/biting_LLINS/*
 !analysis/exploring_interactions/*
 data/*
