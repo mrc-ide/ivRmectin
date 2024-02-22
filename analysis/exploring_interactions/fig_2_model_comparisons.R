@@ -137,7 +137,7 @@ df_antag_eff <- df_antag_ITN_IVM %>%
             mean_mu = mean(mu)) %>%
   left_join(baseline_vals_antag) %>%
   mutate(eff_prev_antag = mean_prev_baseline - mean_prev,
-         eff_eir_antag = mean_EIR_baseline - mean_EIR)
+         eff_eir_antag = mean_EIR_baseline - mean_EIR) %>%
   select(species, itn_cov, d_ITN0, init_EIR, eff_prev_antag, eff_eir_antag)
 #repeat this for the additive model
 baseline_vals_add <- df_add_ITN %>%
