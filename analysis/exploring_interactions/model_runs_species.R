@@ -93,7 +93,7 @@ ivm_parms1 <- ivm_fun(
 ivm_parms2 <- function(IVM_starting) {
   ivm_fun(
     #IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
-    IVM_start_times = IVM_start,
+    IVM_start_times = IVM_starting,
     time_period = time_period,
     hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
     #hazard_profile = hazzy,
@@ -102,6 +102,15 @@ ivm_parms2 <- function(IVM_starting) {
     ivm_max_age = 90)
 }
 
+ivm_parmscheck <- ivm_fun(
+  IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  #IVM_start_times = c(2370, 2400, 2430),
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=ivm_cov,
+  ivm_min_age=5,
+  ivm_max_age = 90)
 
 ivm_parms3 <- lapply(IVM_starting, ivm_parms2)
 
@@ -147,19 +156,23 @@ pyr_param_df <- left_join(pyr_param_df_crit,
   left_join(species_df, by = c("bites_Bed" = "bites_Bed_vector")) %>%
   rename(Q0 = Q0_vector)
 
-write.csv(pyr_param_df, file = "data/species_runs_net_age.csv")
 
-pyr_param_df2 <- crossing(pyr_param_df, ivm_nets_starting) %>%
-  mutate(scenario_number = row_number())
+#pyr_param_df2 <- crossing(pyr_param_df, ivm_nets_starting) %>%
+#  mutate(scenario_number = row_number())
+saveRDS(pyr_param_df, file = "data/species_runs_net_age.rds")
 
-for (i in seq_len(nrow(pyr_param_df2))){
-  pyr_param_list[[i]] <- as.numeric(pyr_param_df2[i,])
+#saveRDS(pyr_param_df2, file = "data/species_runs_net_age.rds")
+
+
+for (i in seq_len(nrow(pyr_param_df))){
+  pyr_param_list[[i]] <- as.numeric(pyr_param_df[i,])
 }
 
 #for (i in seq_len(nrow(pyr_param_df2))){
 #  pyr_param_list[[i]] <- as.list(pyr_param_df2[i,])
 #}
 
+#ivm_input <- numeric(length = 3651)
 #going to pass in the ivm_nets_starting list and access things
 antag_ITN_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   d_ITN0_in <- itn_type_ivm_param[1]
@@ -169,7 +182,8 @@ antag_ITN_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   init_EIR_in <- itn_type_ivm_param[4]
   r_ITN0_in <- itn_type_ivm_param[5]
   itn_half_life_in <- itn_type_ivm_param[6]
-  IVRM_start_in <- itn_type_ivm_param[10] #failed because was getting made into numeric
+  #IVRM_start_in <- itn_type_ivm_param[10] #failed because was getting made into numeric
+  IVRM_start_in <- ivm_nets_starting
   #itn_half_life_in <- itn_type_ivm_param[4]*365
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide.R",
@@ -188,7 +202,7 @@ antag_ITN_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
     ivm_cov_par = 0, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
-    IVRM_start = IVRM_start_in ,
+    IVRM_start = IVRM_start_in,
     d_ITN0 = d_ITN0_in,
     r_ITN0 = r_ITN0_in,
     itn_half_life = itn_half_life_in,
@@ -198,25 +212,27 @@ antag_ITN_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   return(output)
 }
 
-pyr_out_list_antag_ITN <- lapply(pyr_param_list, antag_ITN_cov_loop) #loop through all parameter values
-
+#pyr_out_list_antag_ITN <- lapply(pyr_param_list, ivm_nets_starting = ivm_nets_starting, antag_ITN_cov_loop) #loop through all parameter values
+x <- rep(ivm_nets_starting, nrow(pyr_param_df)) #do reps to ensure have the same length
+#need to rep the list by 3
+pyr_out_list_antag_ITN <- purrr::map2(pyr_param_list, x, antag_ITN_cov_loop) #loop through all parameter values
 res_pyr_out_antag_ITN <- lapply(pyr_out_list_antag_ITN, runfun) #put these values into the model
 
 #bites_Bed_vec <- c(0.85, 0.8)
 
 pyr_out_df_antag_ITN <- do.call(rbind,
-                                sapply(1:(nrow(pyr_param_df)), function(x){
+                                sapply(1:(nrow(pyr_param_df*3)), function(x){
                                               as.data.frame(res_pyr_out_antag_ITN[[x]]) %>%
                                                 select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
-                                                       d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, init_EIR, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
+                                                       d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
                                                 mutate(ref = x, net_type = "pyr_only", model = "antag", int = "LLIN")
                                             }, simplify = F))
 
-write.csv(pyr_out_df_antag_ITN, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_nets_age.csv", row.names = FALSE)
-
+#write.csv(pyr_out_df_antag_ITN, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_nets_age.csv", row.names = FALSE)
+saveRDS(pyr_out_df_antag_ITN, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_nets_age.rds")
 #antag model with ivermectin and nets
 
-antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
+antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   d_ITN0_in <- itn_type_ivm_param[1]
   itn_cov_in <-itn_type_ivm_param[2]
   bites_Bed_in <- itn_type_ivm_param[3]
@@ -224,7 +240,7 @@ antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
   init_EIR_in <- itn_type_ivm_param[4]
   r_ITN0_in <- itn_type_ivm_param[5]
   itn_half_life_in <- itn_type_ivm_param[6]
-  IVRM_start_in <- itn_type_ivm_param[10]
+  IVRM_start_in <- ivm_nets_starting
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide.R",
     #num_int = 1,
@@ -252,24 +268,45 @@ antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
   return(output)
 }
 
-pyr_out_list_antag_ITN_IVM <- lapply(pyr_param_list, antag_ITN_IVM_cov_loop) #loop through all parameter values
+#pyr_out_list_antag_ITN_IVM <- lapply(pyr_param_list, ivm_nets_starting = ivm_nets_starting[1], antag_ITN_IVM_cov_loop) #loop through all parameter values
+###testing###
+x <- rep(ivm_nets_starting, 2) #do reps to ensure have the same length
+y <- rep(pyr_param_list[1:2], 3)
+#
+z <-purrr::map2(y, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
+z2 <- lapply(z, runfun) #put these values into the model
+z2df  <- do.call(rbind,
+                                         sapply(1:(6), function(x){
+                                           as.data.frame(z2[[x]]) %>%
+                                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
+                                                    d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
+                                             mutate(ref = x, net_type = "pyr_only", model = "antag", int = "LLIN and IVM")
+                                         }, simplify = F))
+
+ggplot(z2df, aes(x = t, y = EIR_tot))+
+    geom_line()
+
+
+
+pyr_out_list_antag_ITN_IVM <-purrr::map2(pyr_param_list, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
 
 res_pyr_out_antag_ITN_IVM <- lapply(pyr_out_list_antag_ITN_IVM, runfun) #put these values into the model
 
 #bites_Bed_vec <- c(0.85, 0.8)
 
 pyr_out_df_antag_ITN_IVM <- do.call(rbind,
-                                    sapply(1:(nrow(pyr_param_df)), function(x){
+                                    sapply(1:(nrow(pyr_param_df*3)), function(x){
                                                 as.data.frame(res_pyr_out_antag_ITN_IVM[[x]]) %>%
                                                   select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
-                                                         d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, init_EIR, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
+                                                         d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
                                                   mutate(ref = x, net_type = "pyr_only", model = "antag", int = "LLIN and IVM")
                                               }, simplify = F))
+saveRDS(pyr_out_df_antag_ITN_IVM, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM_nets_age.rds")
 
-write.csv(pyr_out_df_antag_ITN_IVM, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM_nets_age.csv", row.names = FALSE)
+#write.csv(pyr_out_df_antag_ITN_IVM, file = "analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM_nets_age.csv", row.names = FALSE)
 
 #additive, nets only
-add_ITN_cov_loop <- function(itn_type_ivm_param){
+add_ITN_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   d_ITN0_in <- itn_type_ivm_param[1]
   itn_cov_in <-itn_type_ivm_param[2]
   bites_Bed_in <- itn_type_ivm_param[3]
@@ -277,7 +314,7 @@ add_ITN_cov_loop <- function(itn_type_ivm_param){
   init_EIR_in <- itn_type_ivm_param[4]
   r_ITN0_in <- itn_type_ivm_param[5]
   itn_half_life_in <- itn_type_ivm_param[6]
-  IVRM_start_in <- itn_type_ivm_param[10]
+  IVRM_start_in <- ivm_nets_starting
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide_constant_uptake.R",
     #num_int = 1,
@@ -305,24 +342,25 @@ add_ITN_cov_loop <- function(itn_type_ivm_param){
   return(output)
 }
 
-pyr_out_list_add_ITN <- lapply(pyr_param_list, add_ITN_cov_loop) #loop through all parameter values
+pyr_out_list_add_ITN <- purrr::map2(pyr_param_list, x,add_ITN_cov_loop) #loop through all parameter values
 
 res_pyr_out_add_ITN <- lapply(pyr_out_list_add_ITN, runfun) #put these values into the model
 
 #bites_Bed_vec <- c(0.85, 0.8)
 
 pyr_out_df_add_ITN <- do.call(rbind,
-                              sapply(1:(nrow(pyr_param_df)), function(x){
+                              sapply(1:(nrow(pyr_param_df*3)), function(x){
                                           as.data.frame(res_pyr_out_add_ITN[[x]]) %>%
                                             select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
-                                                   d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, init_EIR, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
+                                                   d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
                                             mutate(ref = x, net_type = "pyr_only", model = "add", int = "LLIN")
                                         }, simplify = F))
 
-write.csv(pyr_out_df_add_ITN, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN.csv", row.names = FALSE)
+saveRDS(pyr_out_df_add_ITN, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN.csv")
+#write.csv(pyr_out_df_add_ITN, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN.csv", row.names = FALSE)
 
 #add: LLIN and IVM
-add_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
+add_ITN_IVM_cov_loop <- function(itn_type_ivm_param, ivm_nets_starting){
   d_ITN0_in <- itn_type_ivm_param[1]
   itn_cov_in <-itn_type_ivm_param[2]
   bites_Bed_in <- itn_type_ivm_param[3]
@@ -330,7 +368,7 @@ add_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
   init_EIR_in <- itn_type_ivm_param[4]
   r_ITN0_in <- itn_type_ivm_param[5]
   itn_half_life_in <- itn_type_ivm_param[6]
-  IVRM_start_in
+  IVRM_start_in <- ivm_nets_starting
   #itn_half_life_in <- itn_type_ivm_param[4]*365
   output <- ivRmectin::create_r_model(
     odin_model_path = "inst/extdata/odin_model_endectocide_constant_uptake.R",
@@ -349,7 +387,7 @@ add_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
     ivm_cov_par = 0.8, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
-    IVRM_start = IVM_start_in ,
+    IVRM_start = IVRM_start_in ,
     d_ITN0 = d_ITN0_in,
     r_ITN0 = r_ITN0_in,
     itn_half_life = itn_half_life_in,
@@ -359,19 +397,19 @@ add_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
   return(output)
 }
 
-pyr_out_list_add_ITN_IVM <- lapply(pyr_param_list, add_ITN_IVM_cov_loop) #loop through all parameter values
+pyr_out_list_add_ITN_IVM <- purrr::map2(pyr_param_list, x, add_ITN_IVM_cov_loop) #loop through all parameter values
 
 res_pyr_out_add_ITN_IVM <- lapply(pyr_out_list_add_ITN_IVM, runfun) #put these values into the model
 
 #bites_Bed_vec <- c(0.85, 0.8)
 
 pyr_out_df_add_ITN_IVM <- do.call(rbind,
-                                  sapply(1:(nrow(pyr_param_df)), function(x){
+                                  sapply(1:(nrow(pyr_param_df*3)), function(x){
                                               as.data.frame(res_pyr_out_add_ITN_IVM[[x]]) %>%
                                                 select(t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
-                                                       d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, init_EIR, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
+                                                       d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN) %>%
                                                 mutate(ref = x, net_type = "pyr_only", model = "add", int = "LLIN and IVM")
                                             }, simplify = F))
-
-write.csv(pyr_out_df_add_ITN_IVM, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.csv", row.names = FALSE)
+saveRDS(pyr_out_df_add_ITN_IVM, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.rds")
+#write.csv(pyr_out_df_add_ITN_IVM, file = "analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.csv", row.names = FALSE)
 
