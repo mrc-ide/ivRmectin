@@ -1,118 +1,47 @@
-#fig-2-model-comparisons
+
+
 require(tidyverse)
-require(cowplot)
-df_antag_ITN_IVM <- read_rds("analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM_nets_age.rds") %>%
-  mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
-                             bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
-                             bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
-                             bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
-                             TRUE ~ NA_character_))
-df_antag_ITN <- read_rds("analysis/exploring_interactions/model_output/antag_pyr_LLIN_nets_age.rds")%>%
-  mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
-                             bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
-                             bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
-                             bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
-                             TRUE ~ NA_character_))
-df_add_ITN_IVM <- read_rds("analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.rds")%>%
-  mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
-                             bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
-                             bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
-                             bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
-                             TRUE ~ NA_character_))
-df_add_ITN <- read_rds("analysis/exploring_interactions/model_output/add_pyr_LLIN.rds")%>%
-  mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
-                             bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
-                             bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
-                             bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
-                             TRUE ~ NA_character_))
 
-EIR_vals <- df_antag_ITN_IVM %>%
-  group_by(species, itn_cov, d_ITN0) %>% #changed species, itn coverage and resistance
-  filter(t == 1)
-EIR_vals2 <- unique(EIR_vals$EIR_tot) #2.781299  34.766235 139.064942. use this to ref with the EIRs
+antag_mod <- readRDS(file = "analysis/exploring_interactions/MIM_poster/antag.rds")
+add_mod <- readRDS(file = "analysis/exploring_interactions/MIM_poster/add.rds")
 
-fillNAgaps <- function(x, firstBack=FALSE) {
-  ## NA's in a vector or factor are replaced with last non-NA values
-  ## If firstBack is TRUE, it will fill in leading NA's with the first
-  ## non-NA value. If FALSE, it will not change leading NA's.
+mods <- rbind(antag_mod, add_mod)
 
-  # If it's a factor, store the level labels and convert to integer
-  lvls <- NULL
-  if (is.factor(x)) {
-    lvls <- levels(x)
-    x    <- as.integer(x)
-  }
+res <- unique(antag_mod$d_ITN0)
+itn_cov <- unique(antag_mod$itn_cov)
 
-  goodIdx <- !is.na(x)
+mods_dynamics <- mods %>%
+  filter(d_ITN0 == res[1] & model %in% c("antag_LLIN", "antag_LLIN_IVM") & itn_cov == 0.8)
 
-  # These are the non-NA values from x only
-  # Add a leading NA or take the first good value, depending on firstBack
-  if (firstBack)   goodVals <- c(x[goodIdx][1], x[goodIdx])
-  else             goodVals <- c(NA,            x[goodIdx])
-
-  # Fill the indices of the output vector with the indices pulled from
-  # these offsets of goodVals. Add 1 to avoid indexing to zero.
-  fillIdx <- cumsum(goodIdx)+1
-
-  x <- goodVals[fillIdx]
-
-  # If it was originally a factor, convert it back
-  if (!is.null(lvls)) {
-    x <- factor(x, levels=seq_along(lvls), labels=lvls)
-  }
-
-  x
-}
-
-df_antag_ITN_IVM <- df_antag_ITN_IVM %>%
-  mutate(init_EIR = case_when(t == 1 &EIR_tot == EIR_vals2[1] ~ "low",  #2
-                              t == 1 &EIR_tot == EIR_vals2[2] ~ "medium", #25
-                              t == 1 &EIR_tot == EIR_vals2[3] ~ "high",  #100
-                              TRUE ~ NA_character_))
-
-df_antag_ITN_IVM$init_EIR <- fillNAgaps(df_antag_ITN_IVM$init_EIR)
-
-df_antag_ITN <- df_antag_ITN %>%
-  mutate(init_EIR = case_when(t == 1 &EIR_tot == EIR_vals2[1] ~ "low",  #2
-                              t == 1 &EIR_tot == EIR_vals2[2] ~ "medium", #25
-                              t == 1 &EIR_tot == EIR_vals2[3] ~ "high",  #100
-                              TRUE ~ NA_character_))
-
-df_antag_ITN$init_EIR <- fillNAgaps(df_antag_ITN$init_EIR)
-
-df_add_ITN_IVM <- df_add_ITN_IVM %>%
-  mutate(init_EIR = case_when(t == 1 &EIR_tot == EIR_vals2[1] ~ "low",  #2
-                              t == 1 &EIR_tot == EIR_vals2[2] ~ "medium", #25
-                              t == 1 &EIR_tot == EIR_vals2[3] ~ "high",  #100
-                              TRUE ~ NA_character_))
-df_add_ITN_IVM$init_EIR <- fillNAgaps(df_add_ITN_IVM$init_EIR)
-
-df_add_ITN <- df_add_ITN %>%
-  mutate(init_EIR = case_when(t == 1 &EIR_tot == EIR_vals2[1] ~ "low",  #2
-                              t == 1 &EIR_tot == EIR_vals2[2] ~ "medium", #25
-                              t == 1 &EIR_tot == EIR_vals2[3] ~ "high",  #100
-                              TRUE ~ NA_character_))
-df_add_ITN$init_EIR <- fillNAgaps(df_add_ITN$init_EIR)
-
-#check
-unique(df_antag_ITN_IVM$init_EIR)
-unique(df_antag_ITN$init_EIR)
-unique(df_add_ITN_IVM$init_EIR)
-unique(df_add_ITN$init_EIR)
-
-#list_all <- as.list(df_antag_ITN_IVM, df_antag_ITN, df_add_ITN_IVM, df_add_ITN)
-#df_all <- as.data.frame(rbind("do.call", list_all))
-#
-#head(df_all)
-
-#plotting the mean prevalence and EIR in the ivermectin distribution period
-IVM_begin <- (365*8)+180
+net_seq <- seq(100, 3650, by = 3*365)
+IVM_begin1 <- net_seq[3]+(6*30) # 6 months into new net distribution
 mda_int <- 30
+IVM_start1 <- c(IVM_begin1, IVM_begin1+mda_int, IVM_begin1+mda_int+mda_int)
 
-IVM_start <- c(IVM_begin, IVM_begin+mda_int, IVM_begin+mda_int+mda_int)
+lines <- c("antag_LLIN" = "dotted", "antag_LLIN_IVM" = "solid")
 
-eff_len <- 23
-ivm_on <- IVM_start[1] #3100
-ivm_off <- IVM_start[3]+eff_len #3183
+sp_pals <- c('#1b9e77','#d95f02','#7570b3','#e7298a')
 
-##filter to medium EIR, 10% resistance and 80% LLIN coverage
+ggplot(mods_dynamics, aes(x = t/365, y = slide_prev0to5*100, linetype = as.factor(model), col = as.factor(species)))+
+  geom_line(linewidth = 1)+
+  theme_minimal()+
+  labs(y = "Slide prevalence in under 5s (%)",
+       x = "Time (years)")+
+  scale_linetype_manual(values = lines, name = "Intervention", labels = c("LLIN", "LLIN & endectocide"))+
+  ylim(0, 48)+
+  annotate("segment", x = IVM_start1[1]/365, xend = IVM_start1[1]/365, y = 35, yend = 31, colour = "black", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = IVM_start1[2]/365, xend = IVM_start1[2]/365, y = 35, yend = 31, colour = "black", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = IVM_start1[3]/365, xend = IVM_start1[3]/365, y = 35, yend = 31, colour = "black", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = net_seq[1]/365, xend = net_seq[1]/365, y = 45, yend = 41, colour = "#1f78b4", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = net_seq[2]/365, xend = net_seq[2]/365, y = 35, yend = 31, colour = "#1f78b4", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = net_seq[3]/365, xend = net_seq[3]/365, y = 35, yend = 31, colour = "#1f78b4", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate("segment", x = net_seq[4]/365, xend = net_seq[4]/365, y = 35, yend = 31, colour = "#1f78b4", arrow = arrow(length = unit(0.01, "npc")))+
+  annotate(geom = "text", x = (net_seq[1]/365)+1, y = 47, label = "LLIN distribution (every 3 years)", col = "#1f78b4")+
+  annotate(geom = "text", x = (IVM_start1[1]/365)+(420/365), y = 36, label = "Endectocide MDA campaign")+
+  scale_colour_manual(name = "Anopheles species", labels = c("arabiensis",
+                                                             "funestus",
+                                                             "gambiae",
+                                                             "stephensi"),
+                      values = sp_pals)+
+  theme(legend.position = c(0.35, 0.15), legend.direction = "horizontal")
+
