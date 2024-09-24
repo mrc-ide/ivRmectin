@@ -764,3 +764,4 @@ output(mvx_dead) <- mvx_dead
 output(Q0) <- Q0
 output(bites_Bed) <- bites_Bed
 output(mv0) <- mv0
+output(Ivtot) <- Ivtot
