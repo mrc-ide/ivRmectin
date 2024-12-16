@@ -678,4 +678,3 @@ output(Evxtot_dead) <- Evxtot_dead
 output(Ivxtot_dead) <- Ivxtot_dead
 output(Ivtot) <- Ivtot
 output(wane) <- wane
-#output(endec_killing) <- endec_killing
