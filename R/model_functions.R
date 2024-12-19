@@ -47,6 +47,7 @@ run_model <- function(age=c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,3.5,5,7.5,10,15,20
 
   # run model
   mod_run <- mod$run(tt)
+  #mod_run <- mod$run(tt, step_size_max = )
 
   # shape output
   out <- mod$transform_variables(mod_run)
