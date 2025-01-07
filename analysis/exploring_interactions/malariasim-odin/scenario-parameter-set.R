@@ -17,15 +17,15 @@ bites_Bed_vec <-c(min(phi_vals$phi_lower_round), max(phi_vals$phi_upper_round)) 
 bites_Bed_vec <- c(0.1, 0.9) #override to explore extremes
 Q0_vec <- 0.92
 Q0_vec <- c(0.1, 0.9) #override to explore extremes
-res <- 0.55 #from Moss et al 2024
+res <- c(0.5, 0.9)
 init_EIR_vec <- c(30, 100)
-itn_cov_vec <- 0.86
-ivm_cov_vec <- c(0.1, 0.9) #override to explore extremes
+itn_cov_vec <- c(0.5, 0.9) # two extremes
+ivm_cov_vec <- c(0.5, 0.9) # two extremes
 
 path_nets <- "C:/Users/nc1115/OneDrive - Imperial College London/PhD/PhD_malaria/data/ellie_net_efficacy"
 filenames <- list.files(path = path_nets, pattern = ".csv$", full.names = TRUE)
 lapply(filenames, function(x) {
-  df <- subset(read.csv(x), resistance == res) #4 resistance scenarios
+  df <- subset(read.csv(x), resistance %in% res)
   return(df)
 }) -> list_data
 
@@ -49,9 +49,8 @@ pyr_param_df <- left_join(pyr_param_df_crit,
   mutate(gamman_med = gamman_med*365) %>%
   rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
 
-pyr_param_df <- pyr_param_df[, c(1:(ncol(pyr_param_df) - 2), ncol(pyr_param_df), ncol(pyr_param_df) - 1)]
-
-
+pyr_param_df <- pyr_param_df %>%
+  select(-resistance) #remove the resistance column. We know corresponds to 0.5 and 0.9
 
 saveRDS(pyr_param_df, "analysis/exploring_interactions/malariasim-odin/scenario-parameter-set.rds")
 #and save it to the DIDE drive.
@@ -66,8 +65,8 @@ saveRDS(pyr_param_df_no_int, "W:/endectocides-cluster/data/scenario-parameter-se
 
 
 #same but with different endec_mu and wane
-endec_mu_vec <- seq(0, 1, 0.0001)
-wane_vec <- seq(0,1,0.0001)
+endec_mu_vec <- seq(0, 1, 0.001)
+wane_vec <- seq(0,0.1,0.001)
 
 pyr_param_df_crit2 <- expand.grid(dn0_med = pyr_only_d_ITN0, itn_cov = itn_cov_vec,
                                  init_EIR = init_EIR_vec,
