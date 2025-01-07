@@ -66,7 +66,7 @@ saveRDS(pyr_param_df_no_int, "W:/endectocides-cluster/data/scenario-parameter-se
 
 #same but with different endec_mu and wane
 endec_mu_vec <- seq(0, 1, 0.001)
-wane_vec <- seq(0,0.1,0.001)
+wane_vec <- seq(0,1,0.001)
 
 pyr_param_df_crit2 <- expand.grid(dn0_med = pyr_only_d_ITN0, itn_cov = itn_cov_vec,
                                  init_EIR = init_EIR_vec,
