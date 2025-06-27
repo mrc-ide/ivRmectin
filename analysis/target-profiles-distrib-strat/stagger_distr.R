@@ -1,0 +1,594 @@
+#exploring staggered distribution
+
+#model: odin_model_endectocide_staggered.R
+
+devtools::load_all()
+require(tidyverse)
+
+time_period <- 365*2
+mda_int <- 30
+ivm_cov_in = c(0.1, 0.9)
+
+ivm_haz <- read.table("IVM_derivation/ivermectin_hazards.txt", header=TRUE) #Smit Hazard Ratios
+colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
+# Sourcing the extra functions required to generate the endectocidepecific parameters
+source("R/mda_ivm_functions.R")
+
+#itn_on <- 100 #introduce nets 100 days into simulation
+
+#modelling with extreme density dependence
+
+runfun <- function(mod_name){
+  mod <- mod_name$generator$new(user= mod_name$state, use_dde = TRUE)
+  modx <- mod$run(t = 1:time_period)
+  op<- mod$transform_variables(modx)
+  return(op)
+}
+
+#distr plan
+start <- 200 #time for starting distr
+num_distr <- 3 #either all in one, or over 3 distributions
+target_cov <- 0.9
+stag_cov <- target_cov/num_distr # this is what is feasible for field teams
+
+#over 30 days
+stag_30 <- 30
+times_30_stag <- seq(start, start+ stag_30, length.out = num_distr)
+
+#the start time for the different subpops
+stag_30_IVM_start_1 <- times_30_stag[1]
+stag_30_IVM_start_2 <- times_30_stag[2]
+stag_30_IVM_start_3 <- times_30_stag[3]
+
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms_30_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = stag_30_IVM_start_1,
+  IVM_start_times_2 = stag_30_IVM_start_2,
+  IVM_start_times_3 = stag_30_IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+
+Q0_in <- 0.9
+
+df_var_stag <- expand.grid(Q0 = Q0_in, ivm_cov = stag_cov)
+
+my_list_stag <- list()
+for (i in seq_len(nrow(df_var_stag))){
+  my_list_stag[[i]] <- as.numeric(df_var_stag[i,])
+}
+
+a <- Sys.time()
+
+mod_30d <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_30_stag$ttt,
+    eff_len = ivm_parms_30_stag$eff_len,
+    haz = ivm_parms_30_stag$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms_30_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_30_stag$ivm_max_age,
+    IVRM_start_1 = ivm_parms_30_stag$IVRM_start_1,
+    IVRM_start_2 = ivm_parms_30_stag$IVRM_start_2,
+    IVRM_start_3 = ivm_parms_30_stag$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod_30d <- function(){
+  mod_out_list <- lapply(my_list_stag, mod_30d)
+  res_mod_out <- lapply(mod_out_list, runfun)
+  mod_df <- do.call(rbind, sapply(1:(nrow(df_var_stag)), function(x){
+    df <- as.data.frame(res_mod_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "stag-30d"))}, simplify = F))
+  return(mod_df)
+}
+
+df_mod30d <- my_sim_mod_30d()
+
+#over 10d
+stag_10 <- 10
+times_10_stag <- seq(start, start+ stag_10, length.out = num_distr)
+
+#the start time for the different subpops
+stag_10_IVM_start_1 <- times_10_stag[1]
+stag_10_IVM_start_2 <- times_10_stag[2]
+stag_10_IVM_start_3 <- times_10_stag[3]
+
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms_10_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = stag_10_IVM_start_1,
+  IVM_start_times_2 = stag_10_IVM_start_2,
+  IVM_start_times_3 = stag_10_IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+
+#df <- df[1,]
+my_list_stag <- list()
+for (i in seq_len(nrow(df_var_stag))){
+  my_list_stag[[i]] <- as.numeric(df_var_stag[i,])
+}
+
+a <- Sys.time()
+
+mod_10d <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_10_stag$ttt,
+    eff_len = ivm_parms_10_stag$eff_len,
+    haz = ivm_parms_10_stag$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms_10_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_10_stag$ivm_max_age,
+    IVRM_start_1 = ivm_parms_10_stag$IVRM_start_1,
+    IVRM_start_2 = ivm_parms_10_stag$IVRM_start_2,
+    IVRM_start_3 = ivm_parms_10_stag$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod_10d <- function(){
+  mod2_out_list <- lapply(my_list_stag, mod_10d)
+  res_mod2_out <- lapply(mod2_out_list, runfun)
+  mod2_df <- do.call(rbind, sapply(1:(nrow(df_var_stag)), function(x){
+    df <- as.data.frame(res_mod2_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "stag-10d"))}, simplify = F))
+  return(mod2_df)
+}
+
+df_mod10d <- my_sim_mod_10d()
+
+#baseline scenario
+mod_base <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_10_stag$ttt,
+    eff_len = ivm_parms_10_stag$eff_len,
+    haz = ivm_parms_10_stag$haz,
+    ivm_cov_par = 0, #baseline
+    ivm_min_age = ivm_parms_10_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_10_stag$ivm_max_age,
+    IVRM_start_1 = ivm_parms_10_stag$IVRM_start_1,
+    IVRM_start_2 = ivm_parms_10_stag$IVRM_start_2,
+    IVRM_start_3 = ivm_parms_10_stag$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod_base <- function(){
+  mod_out_list <- lapply(my_list_stag, mod_base)
+  res_mod_out <- lapply(mod_out_list, runfun)
+  mod_df <- do.call(rbind, sapply(1:(nrow(df_var_stag)), function(x){ #just number of rows
+    df <- as.data.frame(res_mod_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "baseline"))}, simplify = F))
+  return(mod_df)
+}
+
+df_mod_base <- my_sim_mod_base()
+
+#all in one####
+
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms_all <- ivRmectin::ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times = start,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+
+
+df_var_all <- expand.grid(Q0 = Q0_in, ivm_cov = target_cov)
+names(df_var3)
+
+#df <- df[1,]
+my_list_all <- list()
+for (i in seq_len(nrow(df_var_all))){
+  my_list_all[[i]] <- as.numeric(df_var_all[i,])
+}
+
+mod_all <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_all$ttt,
+    eff_len = ivm_parms_all$eff_len,
+    haz = ivm_parms_all$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms_all$ivm_min_age,
+    ivm_max_age = ivm_parms_all$ivm_max_age,
+    IVRM_start = ivm_parms_all$IVRM_start,
+    Q0 = Q0_in
+  )
+  return(output)
+}
+
+my_sim_mod_all <- function(){
+  mod_out_list <- lapply(my_list_all, mod_all)
+  res_mod_out <- lapply(mod_out_list, runfun)
+  mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
+    df <- as.data.frame(res_mod_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "all-in", mvtot_1 = mv/3, mvtot_2 = mv/3, mvtot_3 = mv/3))}, simplify = F))
+  return(mod_df)
+} #adding mvtot_1 and 2 and 3 so can rbind onto the rest
+
+df_mod_all <- my_sim_mod_all()
+
+
+###
+
+df_distr <- do.call("rbind", list(df_mod10d, df_mod30d, df_mod_all, df_mod_base))
+distr_pals <- c('#e41a1c','#377eb8','#4daf4a','#984ea3')
+
+mv_plot <- ggplot(df_distr, aes(x = t, y = mv, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 50)+
+  theme(legend.position = c(0.7, 0.2))+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)
+
+ggplot(df_distr, aes(x = t, y = mvtot_1, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 50)+
+  theme(legend.position = c(0.7, 0.2))+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)
+
+ggplot(df_distr, aes(x = t, y = mvtot_2, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 50)+
+  theme(legend.position = c(0.7, 0.2))+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)
+
+ggplot(df_distr, aes(x = t, y = mvtot_3, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 50)+
+  theme(legend.position = c(0.7, 0.2))+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)
+
+eir_plot <- ggplot(df_distr, aes(x = t, y = EIR_tot, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 100)+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)+
+  guides(col = "none")
+
+prev_plot <- ggplot(df_distr, aes(x = t, y = slide_prev0to5, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  ylim(0, 1)+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)+
+  guides(col = "none")
+
+inc_plot <- ggplot(df_distr, aes(x = t, y = clin_inc0to5*1000, col = as.factor(model_type)))+
+  geom_line(size = 1.1)+
+  theme_bw()+
+  scale_color_manual(name = "Time to complete MDA", values = distr_pals)+
+  guides(col = "none")+
+  ylab("clinical incidence u5 per 1000 persons")+
+  ylim(0, 10)
+
+
+cowplot::plot_grid(mv_plot, eir_plot, prev_plot, inc_plot, labels = c("A", "B", "C", "D"))
+
+#then look at epi impact
+#df_int <- do.call("rbind", list(df_mod1, df_mod2, df_mod3))
+
+#by day 200, all back to eqm for mv
+
+df_distr_wide <- df_distr %>%
+  select(t, model_type, clin_inc0to5) %>%
+  pivot_wider(names_from = "model_type", values_from = clin_inc0to5)
+
+#need to look at this over different time periods
+impact <- df_distr_wide %>%
+  summarise(tot_cases_baseline = sum(baseline)*1000,
+            tot_cases_10d = sum(`stag-10d`)*1000,
+            tot_cases_30d = sum(`stag-30d`)*1000,
+            tot_cases_all_in = sum(`all-in`)*1000) %>%
+  mutate(impact_all_in = ((tot_cases_baseline - tot_cases_all_in)/tot_cases_baseline)*100,
+         impact_30d = ((tot_cases_baseline - tot_cases_30d)/tot_cases_baseline)*100,
+         impact_10d = ((tot_cases_baseline - tot_cases_10d)/tot_cases_baseline)*100)
+
+#impact in different time periods. 10d spacing - all distr are done, but not for the 30d spacing, the impact of last one not seen yet
+#so 10d appears to be better
+impact_30d <- df_distr_wide %>%
+  filter(between(t, 100, 130)) %>%
+  summarise(tot_cases_baseline = sum(baseline)*1000,
+            tot_cases_10d = sum(`stag-10d`)*1000,
+            tot_cases_30d = sum(`stag-30d`)*1000,
+            tot_cases_all_in = sum(`all-in`)*1000) %>%
+  mutate(impact_all_in = ((tot_cases_baseline - tot_cases_all_in)/tot_cases_baseline)*100,
+         impact_30d = ((tot_cases_baseline - tot_cases_30d)/tot_cases_baseline)*100,
+         impact_10d = ((tot_cases_baseline - tot_cases_10d)/tot_cases_baseline)*100)
+
+#not seeing that the green line is returning to eqm quicker at this time point, and drop in green has been greater so green appears bigger
+impact_55d <- df_distr_wide %>%
+  filter(between(t, 100, 155)) %>%
+  summarise(tot_cases_baseline = sum(baseline)*1000,
+            tot_cases_10d = sum(`stag-10d`)*1000,
+            tot_cases_30d = sum(`stag-30d`)*1000,
+            tot_cases_all_in = sum(`all-in`)*1000) %>%
+  mutate(impact_all_in = ((tot_cases_baseline - tot_cases_all_in)/tot_cases_baseline)*100,
+         impact_30d = ((tot_cases_baseline - tot_cases_30d)/tot_cases_baseline)*100,
+         impact_10d = ((tot_cases_baseline - tot_cases_10d)/tot_cases_baseline)*100)
+
+#averted the two staggered distributions have averted same % of cases
+impact_200d <- df_distr_wide %>%
+  filter(between(t, 100, 200)) %>%
+  summarise(tot_cases_baseline = sum(baseline)*1000,
+            tot_cases_10d = sum(`stag-10d`)*1000,
+            tot_cases_30d = sum(`stag-30d`)*1000,
+            tot_cases_all_in = sum(`all-in`)*1000) %>%
+  mutate(impact_all_in = ((tot_cases_baseline - tot_cases_all_in)/tot_cases_baseline)*100,
+         impact_30d = ((tot_cases_baseline - tot_cases_30d)/tot_cases_baseline)*100,
+         impact_10d = ((tot_cases_baseline - tot_cases_10d)/tot_cases_baseline)*100)
+
+#now with seasonality
+
+ivm_parms2 <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = IVM_start_1,
+  IVM_start_times_2 = IVM_start_2,
+  IVM_start_times_3 = IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+mod_base_Sen <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    admin2 = "Fatick",
+    ttt = ivm_parms2$ttt,
+    eff_len = ivm_parms2$eff_len,
+    haz = ivm_parms2$haz,
+    ivm_cov_par = 0, #baseline
+    ivm_min_age = ivm_parms2$ivm_min_age,
+    ivm_max_age = ivm_parms2$ivm_max_age,
+    IVRM_start_1 = ivm_parms2$IVRM_start_1,
+    IVRM_start_2 = ivm_parms2$IVRM_start_2,
+    IVRM_start_3 = ivm_parms2$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod_base_Sen <- function(){
+  mod2_out_list <- lapply(my_list, mod_base_Sen)
+  res_mod2_out <- lapply(mod2_out_list, runfun)
+  mod2_df <- do.call(rbind, sapply(1:(nrow(df_var2)), function(x){
+    df <- as.data.frame(res_mod2_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "baseline"))}, simplify = F))
+  return(mod2_df)
+}
+
+df_mod_base_Sen <- my_sim_mod_base_Sen()
+
+ggplot(df_mod_base_Sen, aes(x = t, y = mv))+
+  geom_line()+
+  geom_vline(xintercept = 240, col = "red")
+
+#the raining season starts around d150, so try starting MDA just after (some mosq to kill)
+times_1 <- seq(200, 200+30, length.out = 3)
+
+IVM_start_1 <- times_1[1]
+IVM_start_2 <- times_1[2]
+IVM_start_3 <- times_1[3]
+
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms1 <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = IVM_start_1,
+  IVM_start_times_2 = IVM_start_2,
+  IVM_start_times_3 = IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+ivm_cov_in <- c(0.3)
+Q0_in <- 0.9
+
+df_var1 <- expand.grid(Q0 = Q0_in, ivm_cov = ivm_cov_in)
+names(df_var1)
+
+#df <- df[1,]
+my_list <- list()
+for (i in seq_len(nrow(df_var1))){
+  my_list[[i]] <- as.numeric(df_var1[i,])
+}
+
+a <- Sys.time()
+
+mod1_Sen <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    admin2 = "Fatick",
+    ttt = ivm_parms1$ttt,
+    eff_len = ivm_parms1$eff_len,
+    haz = ivm_parms1$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms1$ivm_min_age,
+    ivm_max_age = ivm_parms1$ivm_max_age,
+    IVRM_start_1 = ivm_parms1$IVRM_start_1,
+    IVRM_start_2 = ivm_parms1$IVRM_start_2,
+    IVRM_start_3 = ivm_parms1$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod1_Sen <- function(){
+  mod1_out_list <- lapply(my_list, mod1_Sen)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_var1)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "stag-30d"))}, simplify = F))
+  return(mod1_df)
+}
+
+df_mod1_Sen <- my_sim_mod1_Sen()
+
+ggplot(df_mod1_Sen, aes(x = t, y = mv))+
+  geom_line()+
+  geom_vline(xintercept = IVM_start_1)
+
+#ggplot(df_mod1_Sen, aes(x = t, y = clin_inc0to5))+
+#  geom_line()+
+#  geom_vline(xintercept = IVM_start_1)
+
+times_2 <- seq(200, 200+10, length.out = 3)
+IVM_start_1 <- times_2[1]
+IVM_start_2 <- times_2[2]
+IVM_start_3 <- times_2[3]
+
+ivm_parms2 <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = IVM_start_1,
+  IVM_start_times_2 = IVM_start_2,
+  IVM_start_times_3 = IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+mod2_Sen <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = 100,
+    country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    admin2 = "Fatick",
+    ttt = ivm_parms2$ttt,
+    eff_len = ivm_parms2$eff_len,
+    haz = ivm_parms2$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms2$ivm_min_age,
+    ivm_max_age = ivm_parms2$ivm_max_age,
+    IVRM_start_1 = ivm_parms2$IVRM_start_1,
+    IVRM_start_2 = ivm_parms2$IVRM_start_2,
+    IVRM_start_3 = ivm_parms2$IVRM_start_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod2_Sen <- function(){
+  mod2_out_list <- lapply(my_list, mod2_Sen)
+  res_mod2_out <- lapply(mod2_out_list, runfun)
+  mod2_df <- do.call(rbind, sapply(1:(nrow(df_var2)), function(x){
+    df <- as.data.frame(res_mod2_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvtot_1, mvtot_2,mvtot_3, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "stag-10d"))}, simplify = F))
+  return(mod2_df)
+}
+
+df_mod2_Sen <- my_sim_mod2_Sen()
+
+ggplot(df_mod2_Sen, aes(x = t, y = mv))+
+  geom_line()
+
+#30d stagger might be better because more mosquitoes to kill. If distribute too early, efforts are lost.
