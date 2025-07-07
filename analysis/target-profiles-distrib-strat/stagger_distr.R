@@ -5,7 +5,7 @@
 devtools::load_all()
 require(tidyverse)
 
-time_period <- 365*5
+time_period <- 365*15 #long run to get to eqm
 mda_int <- 30
 ivm_cov_in = c(0.1, 0.9)
 
@@ -26,7 +26,7 @@ runfun <- function(mod_name){
 }
 
 #distr plan
-start <- 200 #time for starting distr
+start <- (365*5)+200 #time for starting distr, help get to reach eqm, and to distr at right time when seasonality introduced
 num_distr <- 3 #either all in one, or over 3 distributions
 target_cov <- 0.9
 stag_cov <- target_cov/num_distr # this is what is feasible for field teams
@@ -52,6 +52,26 @@ ivm_parms_30_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 31
   ivm_min_age=5,
   ivm_max_age = 90)
 
+#over 10d
+stag_10 <- 10
+times_10_stag <- seq(start, start+ stag_10, length.out = num_distr)
+
+#the start time for the different subpops
+stag_10_IVM_start_1 <- times_10_stag[1]
+stag_10_IVM_start_2 <- times_10_stag[2]
+stag_10_IVM_start_3 <- times_10_stag[3]
+
+#set IVM params for Hannah's mosq model with hazards#
+ivm_parms_10_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = stag_10_IVM_start_1,
+  IVM_start_times_2 = stag_10_IVM_start_2,
+  IVM_start_times_3 = stag_10_IVM_start_3,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
 
 #QO for stephensi, arabiensis, gambiae and arabiensis-like vectors
 Q0_in <- c(0.21, 0.71, 0.92, 0.94)
@@ -108,26 +128,6 @@ my_sim_mod_30d <- function(){
 
 df_mod30d <- my_sim_mod_30d()
 
-#over 10d
-stag_10 <- 10
-times_10_stag <- seq(start, start+ stag_10, length.out = num_distr)
-
-#the start time for the different subpops
-stag_10_IVM_start_1 <- times_10_stag[1]
-stag_10_IVM_start_2 <- times_10_stag[2]
-stag_10_IVM_start_3 <- times_10_stag[3]
-
-#set IVM params for Hannah's mosq model with hazards#
-ivm_parms_10_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
-  IVM_start_times_1 = stag_10_IVM_start_1,
-  IVM_start_times_2 = stag_10_IVM_start_2,
-  IVM_start_times_3 = stag_10_IVM_start_3,
-  time_period = time_period,
-  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
-  #hazard_profile = hazzy,
-  ivm_coverage=0.8, #gets updated in function
-  ivm_min_age=5,
-  ivm_max_age = 90)
 
 
 mod_10d <-  function(data_in){
@@ -328,6 +328,15 @@ my_sim_mod_base_Sen <- function(){
 }
 
 df_mod_base_Sen <- my_sim_mod_base_Sen()
+
+df_mod_base_Sen %>%
+  filter(ref == 5 & between(t, 1, 730)) %>%
+  ggplot()+
+  aes(x = t, y = mv)+
+  geom_line()+
+  geom_vline(xintercept = 150, col = "red")+ #if start doing multiple rounds
+  geom_vline(xintercept = 170, col = "red")+
+  geom_vline(xintercept = 200, col = "red") #just do start t = 200d into the year for the mains
 
 ggplot(df_mod_base_Sen, aes(x = t, y = mv))+
   geom_line()+
