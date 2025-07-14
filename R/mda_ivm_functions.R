@@ -120,7 +120,7 @@ ivm_fun_stag_cov <- function(IVM_start_times, time_period, hazard_profile, prop_
 }
 #------------------------------------------------
 
-#' Function that returns parameters required for Ivermectin simulation with staggered distribution
+#' Function that returns parameters required for Ivermectin simulation with staggered distribution and metapop...
 #'
 #' @export
 
