@@ -363,7 +363,7 @@ Evtot_dead = sum(Ev_F1_dead) + sum(Ev_F2_dead) + sum(Ex_F1_dead) + sum(Ex_F2_dea
 Ivtot_dead = Iv_F1_dead + Iv_F2_dead + sum(Ix_F1_dead) + sum(Ix_F2_dead) #4
 
 
-#total number of mosq killed by non-ivm methods
+#total number of mosq killed
 mv_dead = Svtot_dead + Evtot_dead + Ivtot_dead
 
 
@@ -765,3 +765,6 @@ output(Q0) <- Q0
 output(bites_Bed) <- bites_Bed
 output(mv0) <- mv0
 output(Ivtot) <- Ivtot
+output(Svtot) <- Svtot
+output(Evtot) <- Evtot
+
