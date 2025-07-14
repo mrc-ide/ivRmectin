@@ -62,7 +62,105 @@ ivm_fun <- function(IVM_start_times, time_period, hazard_profile, ivm_coverage=0
   return(op)
 
 }
+#------------------------------------------------
 
+#------------------------------------------------
+#' Function that returns parameters required for Ivermectin simulation with staggered distribution and coverage
+#'
+#' @export
+
+ivm_fun_stag_cov <- function(IVM_start_times, time_period, hazard_profile, prop_human_HR_threshold, ivm_coverage=0.8, ivm_min_age=5, ivm_max_age = 200, bites_per_3_days=1){
+
+  # function to make the ivermectin time profile
+  make_IVRM = function(IVRM_st, eff_len,ttt){
+    IVRM =  rep(max(ttt), length(ttt))
+    for(i in 1:length(IVRM_st)){
+      IVRM[ttt >= IVRM_st[i]-1 & ttt < IVRM_st[i] + eff_len -1] = IVRM_st[i]
+    }
+    return(IVRM)
+  }
+
+  #make function for the prop_human_HR_threshold time profile
+  make_stag_cov = function(IVRM_st, eff_len,ttt, prop_human_HR_threshold){
+    prop <- rep(0, length(ttt))  # Start with 0s everywhere
+
+    for (i in seq_along(IVRM_st)) {
+      start_day <- IVRM_st[i]
+      idx <- which(ttt >= start_day-1 & ttt < start_day + eff_len-1) #days when intervention is on
+
+      # Only assign if there's enough length in prop_human_HR_threshold
+      if (length(idx) > 0 && length(prop_human_HR_threshold) >= length(idx)) {
+        prop[idx] <- prop_human_HR_threshold[1:length(idx)]
+      } else {
+        warning("eff_len exceeds length of prop_human_HR_threshold or ttt range is too short")
+      }
+    }
+    return(prop)
+  }
+
+  ttt = 0:time_period
+  eff_len = length(hazard_profile)
+  IVRM_start = make_IVRM(IVM_start_times, eff_len, ttt)
+  #ivm_cov = ivm_coverage*(exp(-ivm_min_age/21) - exp(-ivm_max_age/21))
+  prop_human_HR_threshold = make_stag_cov(IVM_start_times,eff_len, ttt, prop_human_HR_threshold)
+
+  op = list(ttt = ttt,
+            eff_len = eff_len,
+            haz = hazard_profile,
+            ivm_cov_par = ivm_coverage,
+            ivm_min_age = ivm_min_age,
+            ivm_max_age = ivm_max_age,
+            B2 = bites_per_3_days,
+            IVRM_start=IVRM_start,
+            prop_human_HR_threshold = prop_human_HR_threshold
+
+  )
+  return(op)
+
+}
+#------------------------------------------------
+
+#' Function that returns parameters required for Ivermectin simulation with staggered distribution
+#'
+#' @export
+
+ivm_fun_stag <- function(IVM_start_times_1, IVM_start_times_2, IVM_start_times_3,time_period, hazard_profile, ivm_coverage=0.8, ivm_min_age=5, ivm_max_age = 200, bites_per_3_days=1){
+
+  # function to make the ivermectin time profile
+  make_IVRM = function(IVRM_st_1, IVRM_st_2,IVRM_st_3, eff_len,ttt){
+    IVRM_1 =  rep(max(ttt), length(ttt))
+    IVRM_2 =  rep(max(ttt), length(ttt))
+    IVRM_3 =  rep(max(ttt), length(ttt))
+    for(i in 1:length(IVRM_st_1)){
+      IVRM_1[ttt >= IVRM_st_1[i]-1 & ttt < IVRM_st_1[i] + eff_len -1] = IVRM_st_1[i]
+    }
+    for(i in 1:length(IVRM_st_2)){
+      IVRM_2[ttt >= IVRM_st_2[i]-1 & ttt < IVRM_st_2[i] + eff_len -1] = IVRM_st_2[i]
+    }
+    for(i in 1:length(IVRM_st_3)){
+      IVRM_3[ttt >= IVRM_st_3[i]-1 & ttt < IVRM_st_3[i] + eff_len -1] = IVRM_st_3[i]
+    }
+    return(list(IVRM_1 = IVRM_1, IVRM_2 = IVRM_2, IVRM_3 = IVRM_3))
+  }
+
+  ttt = 0:time_period
+  eff_len = length(hazard_profile)
+  IVRM_starts = make_IVRM(IVM_start_times_1,IVM_start_times_2, IVM_start_times_3, eff_len, ttt)
+
+  op = list(ttt = ttt,
+            eff_len = eff_len,
+            haz = hazard_profile,
+            ivm_cov_par = ivm_coverage,
+            ivm_min_age = ivm_min_age,
+            ivm_max_age = ivm_max_age,
+            B2 = bites_per_3_days,
+            IVRM_start_1=IVRM_starts$IVRM_1,
+            IVRM_start_2 = IVRM_starts$IVRM_2,
+            IVRM_start_3 = IVRM_starts$IVRM_3
+  )
+  return(op)
+
+}
 ############################################################################################################################
 # update parameter list without
 ############################################################################################################################
