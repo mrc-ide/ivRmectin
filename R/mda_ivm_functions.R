@@ -122,47 +122,6 @@ ivm_fun_stag_cov <- function(IVM_start_times, time_period, hazard_profile, prop_
 }
 #------------------------------------------------
 
-#' Function that returns parameters required for Ivermectin simulation with staggered distribution and metapop...
-#'
-#' @export
-
-ivm_fun_stag <- function(IVM_start_times_1, IVM_start_times_2, IVM_start_times_3,time_period, hazard_profile, ivm_coverage=0.8, ivm_min_age=5, ivm_max_age = 200, bites_per_3_days=1){
-
-  # function to make the ivermectin time profile
-  make_IVRM = function(IVRM_st_1, IVRM_st_2,IVRM_st_3, eff_len,ttt){
-    IVRM_1 =  rep(max(ttt), length(ttt))
-    IVRM_2 =  rep(max(ttt), length(ttt))
-    IVRM_3 =  rep(max(ttt), length(ttt))
-    for(i in 1:length(IVRM_st_1)){
-      IVRM_1[ttt >= IVRM_st_1[i]-1 & ttt < IVRM_st_1[i] + eff_len -1] = IVRM_st_1[i]
-    }
-    for(i in 1:length(IVRM_st_2)){
-      IVRM_2[ttt >= IVRM_st_2[i]-1 & ttt < IVRM_st_2[i] + eff_len -1] = IVRM_st_2[i]
-    }
-    for(i in 1:length(IVRM_st_3)){
-      IVRM_3[ttt >= IVRM_st_3[i]-1 & ttt < IVRM_st_3[i] + eff_len -1] = IVRM_st_3[i]
-    }
-    return(list(IVRM_1 = IVRM_1, IVRM_2 = IVRM_2, IVRM_3 = IVRM_3))
-  }
-
-  ttt = 0:time_period
-  eff_len = length(hazard_profile)
-  IVRM_starts = make_IVRM(IVM_start_times_1,IVM_start_times_2, IVM_start_times_3, eff_len, ttt)
-
-  op = list(ttt = ttt,
-            eff_len = eff_len,
-            haz = hazard_profile,
-            ivm_cov_par = ivm_coverage,
-            ivm_min_age = ivm_min_age,
-            ivm_max_age = ivm_max_age,
-            B2 = bites_per_3_days,
-            IVRM_start_1=IVRM_starts$IVRM_1,
-            IVRM_start_2 = IVRM_starts$IVRM_2,
-            IVRM_start_3 = IVRM_starts$IVRM_3
-  )
-  return(op)
-
-}
 ############################################################################################################################
 # update parameter list without
 ############################################################################################################################
