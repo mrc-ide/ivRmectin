@@ -227,8 +227,6 @@ ivm_parms_all <- ivRmectin::ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #dis
   ivm_min_age=5,
   ivm_max_age = 90)
 
-
-
 df_var_all <- expand.grid(Q0 = Q0_in, ivm_cov = target_cov, init_EIR = init_EIR_in)
 
 #df <- df[1,]
@@ -275,6 +273,62 @@ my_sim_mod_all <- function(){
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
 
 df_mod_all <- my_sim_mod_all()
+
+##try all-in-one in staggered model
+
+ivm_parms_all_stag <- ivRmectin::ivm_fun_stag(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times_1 = start,
+  IVM_start_times_2 = start,
+  IVM_start_times_3 = start,
+  time_period = time_period,
+  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+
+mod_all_stag <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = init_EIR_in,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_all_stag$ttt,
+    eff_len = ivm_parms_all_stag$eff_len,
+    haz = ivm_parms_all_stag$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms_all_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_all_stag$ivm_max_age,
+    IVRM_start_1 = ivm_parms_all_stag$IVM_start_times_1,
+    IVRM_start_2 = ivm_parms_all_stag$IVM_start_times_2,
+    IVRM_start_3 = ivm_parms_all_stag$IVM_start_times_3,
+    Q0 = Q0_in,
+    num_distr = 3
+  )
+  return(output)
+}
+
+my_sim_mod_all_stag <- function(){
+  mod_out_list <- lapply(my_list_stag, mod_all_stag)
+  res_mod_out <- lapply(mod_out_list, runfun)
+  mod_df <- do.call(rbind, sapply(1:(nrow(df_var_stag)), function(x){
+    df <- as.data.frame(res_mod_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "all-in", mvtot_1 = mv/3, mvtot_2 = mv/3, mvtot_3 = mv/3))}, simplify = F))
+  return(mod_df)
+} #adding mvtot_1 and 2 and 3 so can rbind onto the rest
+
+df_mod_all_stag <- my_sim_mod_all_stag()
 
 
 ###
@@ -338,9 +392,10 @@ df_mod_base_Sen %>%
   geom_vline(xintercept = 170, col = "red")+
   geom_vline(xintercept = 200, col = "red") #just do start t = 200d into the year for the mains
 
-ggplot(df_mod_base_Sen, aes(x = t, y = mv))+
-  geom_line()+
-  geom_vline(xintercept = start, col = "red")
+df_mod_base_Sen %>%
+  filter(t == 1) %>%
+  group_by(ref) %>%
+  summarise(EIR_tot = EIR_tot)
 
 
 #10d stagger with seasonality
@@ -357,7 +412,7 @@ mod_10d_Sen <-  function(data_in){
     #itn_cov = 0.75,
     #het_brackets = 5,
     #age = init_age,
-    init_EIR = 100,
+    init_EIR = init_EIR_in,
     country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
     admin2 = "Fatick",
     ttt = ivm_parms_10_stag$ttt,
@@ -387,6 +442,7 @@ my_sim_mod_10d_Sen <- function(){
 
 df_mod_10d_Sen <- my_sim_mod_10d_Sen()
 
+
 mod_30d_Sen <-  function(data_in){
   Q0_in <- data_in[1]
   ivm_cov_in <- data_in[2]
@@ -399,18 +455,18 @@ mod_30d_Sen <-  function(data_in){
     #itn_cov = 0.75,
     #het_brackets = 5,
     #age = init_age,
-    init_EIR = 100,
+    init_EIR = init_EIR_in,
     country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
     admin2 = "Fatick",
-    ttt = ivm_parms_10_stag$ttt,
-    eff_len = ivm_parms_10_stag$eff_len,
-    haz = ivm_parms_10_stag$haz,
+    ttt = ivm_parms_30_stag$ttt,
+    eff_len = ivm_parms_30_stag$eff_len,
+    haz = ivm_parms_30_stag$haz,
     ivm_cov_par = ivm_cov_in,
-    ivm_min_age = ivm_parms_10_stag$ivm_min_age,
-    ivm_max_age = ivm_parms_10_stag$ivm_max_age,
-    IVRM_start_1 = ivm_parms_10_stag$IVRM_start_1,
-    IVRM_start_2 = ivm_parms_10_stag$IVRM_start_2,
-    IVRM_start_3 = ivm_parms_10_stag$IVRM_start_3,
+    ivm_min_age = ivm_parms_30_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_30_stag$ivm_max_age,
+    IVRM_start_1 = ivm_parms_30_stag$IVRM_start_1,
+    IVRM_start_2 = ivm_parms_30_stag$IVRM_start_2,
+    IVRM_start_3 = ivm_parms_30_stag$IVRM_start_3,
     Q0 = Q0_in,
     num_distr = 3
   )
@@ -471,5 +527,10 @@ df_mod_all_Sen <- my_sim_modall_Sen()
 
 df_distr_Sen <- do.call("rbind", list(df_mod_base_Sen, df_mod_10d_Sen, df_mod_30d_Sen, df_mod_all_Sen))
 
+unique(df_mod_base_Sen$ref)
+unique(df_mod_10d_Sen$ref)
+unique(df_mod_30d_Sen$ref)
+unique(df_mod_all_Sen$ref)
+saveRDS(df_distr_Sen, file = "analysis/target-profiles-distrib-strat/chapter/output/df_distr_Sen.rds")
 
 #30d stagger might be better because more mosquitoes to kill. If distribute too early, efforts are lost??

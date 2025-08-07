@@ -318,6 +318,7 @@ mv = Sv+Ev+Iv
 # model options if don't want to use a delayed delay
 #deriv(Ev[1]) <- ince - Ev[1] - mu*Ev[1]
 #deriv(Ev[2:10]) <- Ev[i-1] - Ev[i] - mu*Ev[i]
+#deriv(Iv) <- Ev[10] - mu*Iv
 #mv = Sv+sum(Ev)+Iv
 
 

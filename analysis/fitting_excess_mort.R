@@ -189,22 +189,22 @@ res1_out_df_in <- read.csv("data/res1_out_df.csv", header = TRUE)
 
 res1_ivm_distrib <- res1_out_df_in %>%
   filter(between(t, 180, 263))
-mu_h_vector <- seq(0, 1, 0.001)
+
 
 #go through res_out_list (the models with different values of mu_h and extract t, mv and mu_h between t = 180 and t=263)
 out_df <- do.call(rbind,
                   sapply(1:length(mu_h_vector), function(x){
-                    as.data.frame(res_out_list[[x]]) %>%
+                    as.data.frame(res_out_list[[x]]) %>% #go through all the values in the list and save
                       filter(between(t, 180, 263)) %>%
                       select(t, mv, mu_h) %>%
                       mutate(ref=x)
                   }, simplify = F))
 
-#write.csv(out_df, file = "data/out_df.csv", row.names = FALSE) #these are the model outputs
+write.csv(out_df, file = "data/out_df.csv", row.names = FALSE) #these are the model outputs
 
 out_df_in <- read.csv("data/out_df.csv", header = TRUE)
 
-out_list <- split(out_df_in, f = out_df$ref)
+out_list <- split(out_df_in, f = out_df_in$ref)
 
 error <- numeric()
 for (i in 1:length(mu_h_vector)){
@@ -278,16 +278,39 @@ wh15 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_mod
                                   ivm_min_age = ivm_parms3$ivm_min_age, # youngest age group receiving endectocide
                                   ivm_max_age = ivm_parms3$ivm_max_age, # oldest age group receiving endectocide
                                   IVRM_start = ivm_parms3$IVRM_start,
-                                  mu_h = 0.257) # model specific parameter to control timing of endectocide delivery
+                                  mu_h = 0.43) # model specific parameter to control timing of endectocide delivery
 
 res15 <- runfun(wh15)
 
+#with the refit value of mu_h, with LLINs
+wh16 <- ivRmectin::create_r_model(odin_model_path = "inst/extdata/endec_mosq_model_check.R",
+                                  #num_int = 1,
+                                  num_int = 2,# number of vector control (IRS and ITN) population groups
+                                  ITN_IRS_on = 100,
+                                  itn_cov = 0.75,
+                                  #het_brackets = 5, # number of heterogeneous biting categories
+                                  #age = init_age, # the different age classes to be ran within the model
+                                  init_EIR = init_EIR, # the Entomological Innoculation Rate
+                                  #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  #admin2 = "Fatick", # Admin 2 setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+                                  ttt = ivm_parms3$ttt, # model specific parameter to control timing of endectocide delivery
+                                  eff_len = ivm_parms3$eff_len, # number of days after receiving endectocide that HR is higher
+                                  haz = ivm_parms3$haz, # hazard ratio for each off the eff_len number of days
+                                  ivm_cov_par = ivm_parms3$ivm_cov_par, # proportion of popuulation receiving the endectocide
+                                  ivm_min_age = ivm_parms3$ivm_min_age, # youngest age group receiving endectocide
+                                  ivm_max_age = ivm_parms3$ivm_max_age, # oldest age group receiving endectocide
+                                  IVRM_start = ivm_parms3$IVRM_start,
+                                  mu_h = 0.43) # model specific parameter to control timing of endectocide delivery
+
+res16 <- runfun(wh16)
+
 plot(res1$t/365, res1$mv, ylim = c(0, 45), main = "Mosquito Density")
-lines(res3$t/365, res3$mv, col = "blue") #with the equilibrium
-lines(res4$t/365,res4$mv, col = "red") #getting spikes better with the fitting
+#lines(res3$t/365, res3$mv, col = "blue") #with the equilibrium
+lines(res4$t/365,res4$mv, col = "red") #getting spikes better with the fitting. mu_h = 0.257, no LLIN
 lines(res10$t/365,res10$mv, col = "green") #getting spikes better with the fitting
-lines(res14$t/365,res14$mv, col = "pink") #mu_h = 0
+lines(res14$t/365,res14$mv, col = "pink") #mu_h = 0, LLIN only
 lines(res15$t/365,res15$mv, col = "orange") #mu_h = 0.257. nets on but don't refit
+lines(res16$t/365,res16$mv, col = "grey") #mu_h = 0.43 - the refit value of mu_h, with
 
 arrows(c(180, 210, 240)/365, -50, c(180, 210, 240)/365, 0.1, length = 0.1, lwd = 3, col = "goldenrod2")
 
@@ -342,10 +365,10 @@ res6 <- runfun(wh6)
 
 
 wh0 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_endectocide.R",
-                                  num_int = 1,
-                                  #num_int = 2,
-                                  #ITN_IRS_on = 100,
-                                  #itn_cov = 0.75,
+                                  #num_int = 1,
+                                  num_int = 2,
+                                  ITN_IRS_on = 100,
+                                  itn_cov = 0.75,
                                   #het_brackets = 5,
                                   #age = init_age,
                                   init_EIR = 100,

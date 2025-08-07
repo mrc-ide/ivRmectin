@@ -353,7 +353,8 @@ dim(IVRM_start) <- length(ttt)
 IVRM_sr = interpolate(ttt, IVRM_start, "constant")
 
 #endec_killing <- mu + (endec_mu*avhc*ivm_cov)
-endec_killing <- mu + endec_mu
+#t_imp <- t - IVRM_start[]
+endec_killing <- (mu + endec_mu)#*exp(-t_imp/eff_len)
 endec_mu <- user()
 #endec_killing <- user()
 
@@ -617,6 +618,7 @@ output(deaths_inc0to59) <- sum(raw_deaths_inc0to59[,,])/sum(den[1:age59]) # chec
 # Param checking outputs
 output(mu) <- mu
 output(beta_larval) <- beta_larval
+output(betaa) <- betaa
 output(KL) <- KL
 output(mv) <- mv
 output(Q) <- Q
@@ -660,3 +662,4 @@ output(mvx_dead) <- mvx_dead
 output(Svxtot_dead) <- Svxtot_dead
 output(Evxtot_dead) <- Evxtot_dead
 output(Ivxtot_dead) <- Ivxtot_dead
+output(Ivtot) <- Ivtot

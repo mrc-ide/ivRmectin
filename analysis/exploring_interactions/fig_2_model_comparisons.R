@@ -1,25 +1,25 @@
 #fig-2-model-comparisons
 require(tidyverse)
 require(cowplot)
-df_antag_ITN_IVM <- read.csv("analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM.csv") %>%
+df_antag_ITN_IVM <- read_rds("analysis/exploring_interactions/model_output/antag_pyr_LLIN_IVM_nets_age.rds") %>%
   mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
                              bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
                              bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
                              bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
                              TRUE ~ NA_character_))
-df_antag_ITN <- read.csv("analysis/exploring_interactions/model_output/antag_pyr_LLIN.csv")%>%
+df_antag_ITN <- read_rds("analysis/exploring_interactions/model_output/antag_pyr_LLIN_nets_age.rds")%>%
   mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
                              bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
                              bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
                              bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
                              TRUE ~ NA_character_))
-df_add_ITN_IVM <- read.csv("analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.csv")%>%
+df_add_ITN_IVM <- read_rds("analysis/exploring_interactions/model_output/add_pyr_LLIN_IVM.rds")%>%
   mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
                              bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
                              bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",
                              bites_Bed == 0.52 & Q0 == 0.21 ~ "stephensi",
                              TRUE ~ NA_character_))
-df_add_ITN <- read.csv("analysis/exploring_interactions/model_output/add_pyr_LLIN.csv")%>%
+df_add_ITN <- read_rds("analysis/exploring_interactions/model_output/add_pyr_LLIN.rds")%>%
   mutate(species = case_when(bites_Bed == 0.85 & Q0 == 0.92 ~ "gambiae",
                              bites_Bed == 0.8 & Q0 == 0.71 ~ "arabiensis",
                              bites_Bed == 0.78 & Q0 == 0.94 ~ "funestus",

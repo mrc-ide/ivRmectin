@@ -439,7 +439,7 @@ K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dL
 KL <- K0*theta2
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
-
+#mu <- 0.132
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- user()
 initial(PL) <- init_PL
@@ -633,6 +633,7 @@ output(deaths_inc0to59) <- sum(raw_deaths_inc0to59[,,])/sum(den[1:age59]) # chec
 # Param checking outputs
 output(mu) <- mu
 output(beta_larval) <- beta_larval
+output(betaa) <- betaa
 output(KL) <- KL
 output(mv) <- mv
 output(Q) <- Q
@@ -677,4 +678,7 @@ output(Svxtot_dead) <- Svxtot_dead
 output(Evxtot_dead) <- Evxtot_dead
 output(Ivxtot_dead) <- Ivxtot_dead
 output(Ivtot) <- Ivtot
+output(Evtot) <- Evtot
+output(Svtot) <- Svtot
 output(wane) <- wane
+output(eff_len) <- eff_len

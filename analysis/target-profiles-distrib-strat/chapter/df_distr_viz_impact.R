@@ -366,20 +366,6 @@ dynamics_perennial <- cowplot::plot_grid(mv_plot, mosq_killed, eir_plot, prev_pl
                                          impact_main_plot, labels = c("A", "B", "C", "D", "E", "F"))
 
 
-
-ggplot(impact_measurements_long, aes(x = factor(scenario, levels = c(levels_x[1], levels_x[3], levels_x[2]),
-                                                labels = c("Overall", "After 10d int", "After 30d int")), y = cases_averted, fill = as.factor(intervention)))+
-  geom_bar(stat = "identity", position = position_dodge())+
-  facet_wrap(vars(init_EIR, Q0), labeller = label_both)+
-  theme_bw()+
-  theme(legend.position = c(0.9, 0.1))+
-  scale_fill_manual(name = "Time to completel MDA", values = c(distr_pals[3], distr_pals[4], distr_pals[1]),
-                    labels = c("10 days", "30 days", "1 day"))+
-  xlab("Time period of measurement")+
-  ylab("Clinical cases averted (%) in children under 5-years-old")+
-  ylim(0, 60)
-
-
 #then for prevalence, but look at set time points
 df_distr_wide_prev_setting <- df_distr_all %>%
   select(t, Q0, init_EIR, model_type, slide_prev0to5) %>%

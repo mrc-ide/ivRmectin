@@ -2,7 +2,7 @@
 % Please edit documentation in R/mda_ivm_functions.R
 \name{ivm_fun_stag}
 \alias{ivm_fun_stag}
-\title{Function that returns parameters required for Ivermectin simulation with staggered distribution}
+\title{Function that returns parameters required for Ivermectin simulation with staggered distribution and metapop...}
 \usage{
 ivm_fun_stag(
   IVM_start_times_1,
@@ -17,5 +17,5 @@ ivm_fun_stag(
 )
 }
 \description{
-Function that returns parameters required for Ivermectin simulation with staggered distribution
+Function that returns parameters required for Ivermectin simulation with staggered distribution and metapop...
 }

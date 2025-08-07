@@ -5,5 +5,5 @@
 .*csv
 .xlsx
 plots/*
-
 analysis/biting_LLINS/*
+analysis/exploring_interactions/*

@@ -107,6 +107,14 @@ wh1 <- ivRmectin:::create_r_model(odin_model_path = "inst/extdata/odin_model_end
 res0 <- runfun(wh0)
 res1 <- runfun(wh1)
 
+df0 <- as.data.frame(res0)
+df1 <- as.data.frame(res1)
+
+ggplot(df1, aes(x = t, y = mv))+
+  geom_line()+
+  xlim(3119, 3500)+
+  geom_vline(aes(xintercept = 3130))
+
 # Plotting the results
 cols <- c("grey40", "deeppink2")
 par(mfrow = c(1, 3), mar = c(5, 4, 1, 1))

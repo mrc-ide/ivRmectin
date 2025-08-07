@@ -1,5 +1,5 @@
 #model staggered distribution by altering hazard ratios.
-
+devtools::load_all()
 #we assume equal coverage at each distribution
 
 #modify the hazard ratio curve
@@ -166,7 +166,7 @@ my_sim_mod_10d_stag <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIR_tot, Ivtot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot,clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "10d-stagger"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest

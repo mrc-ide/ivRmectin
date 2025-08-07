@@ -132,7 +132,7 @@ res1_out_df_in <- read.csv("analysis/exploring_interactions/model_output/endec_m
 #so select mv values between 180 and 263.
 
 res1_ivm_distrib <- res1_out_df_in %>%
-  filter(between(t, IVM_start[1], ivm_start[3]))
+  filter(between(t, IVM_start[1], ivm_start[3])) #should change this to IVM_start[3]+23
 
 
 #go through res_out_list (the models with different values of mu_h and extract t, mv and mu_h between t = 180 and t=263)

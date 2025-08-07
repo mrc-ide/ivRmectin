@@ -308,19 +308,47 @@ incv <- delay(lag_incv, delayMos)
 betaa <- 0.5*PL/dPL
 #betaa <- mv0 * mu0 * theta2
 
-deriv(Sv) <- -ince - mu*Sv + betaa
+ttt[] <- user()
+dim(ttt)<-user()
+IVRM_start[]<-user()
+dim(IVRM_start) <- length(ttt)
+#
+IVRM_sr = interpolate(ttt, IVRM_start, "constant")
+
+
+endec_mu = mu+mu_h
+mu_h = user()
+eff_len = user()
+
+deriv(Sv) = if (t >= (IVRM_sr) && t <= (IVRM_sr + eff_len)) -ince - endec_mu*Sv + betaa else -ince - mu*Sv
+deriv(Ev[1]) = if (t >= (IVRM_sr) && t <= (IVRM_sr + eff_len)) ince - Ev[1] - endec_mu*Ev[1] else  ince - Ev[1] - mu*Ev[1]
+deriv(Ev[2:10]) = if (t >= (IVRM_sr) && t <= (IVRM_sr + eff_len))  Ev[i-1] - Ev[i] - endec_mu*Ev[i] else  Ev[i-1] - Ev[i] - mu*Ev[i]
+deriv(Iv) = if (t >= (IVRM_sr) && t <= (IVRM_sr + eff_len)) Ev[10] - endec_mu*Iv else Ev[10] - mu*Iv
+
+#ivm_on_1 <- user()
+#ivm_on_2 <- user()
+#ivm_on_3 <- user()
+
+#deriv(Sv) <- if (t >= (ivm_on_1) && t < (ivm_on_1 + eff_len)) -ince - endec_mu*Sv + betaa else if (t >= (ivm_on_2) && t < (ivm_on_2 + eff_len)) -ince - endec_mu*Sv + betaa else if (t >= (ivm_on_3) && t < (ivm_on_3 + eff_len)) -ince - endec_mu*Sv + betaa else -ince - mu*Sv + betaa
+#deriv(Ev) <- ince - incv - mu*Ev
+#deriv(Iv) <- incv - mu*Iv
+
+#deriv(Sv) <- if (t >= (ivm_on_1) && t < (ivm_on_1 + eff_len)) -ince - endec_mu*Sv + betaa else if (t >= (ivm_on_2) && t < (ivm_on_2 + eff_len)) -ince - endec_mu*Sv + betaa else if (t >= (ivm_on_3) && t < (ivm_on_3 + eff_len)) -ince - endec_mu*Sv + betaa else -ince - mu*Sv + betaa
+
 #deriv(Ev) <- ince - incv - mu*Ev
 #deriv(Iv) <- incv - mu*Iv
 
 # Total mosquito population
-mv = Sv+Ev+Iv
+#mv = Sv+Ev+Iv
 
 # model options if don't want to use a delayed delay
-deriv(Ev[1]) <- ince - Ev[1] - mu*Ev[1]
-deriv(Ev[2:10]) <- Ev[i-1] - Ev[i] - mu*Ev[i]
-deriv(Iv) <- Ev[10] - mu*Iv
-mv = Sv+sum(Ev)+Iv
+#deriv(Ev[1]) <- if (t >= (ivm_on_1) && t < (ivm_on_1 + eff_len)) ince - Ev[1] - endec_mu*Ev[1] else if (t >= (ivm_on_2) && t < (ivm_on_2 + eff_len)) ince - Ev[1] - endec_mu*Ev[1] else if (t >= (ivm_on_3) && t < (ivm_on_3 + eff_len)) ince - Ev[1] - endec_mu*Ev[1] else ince - Ev[1] - mu*Ev[1]
 
+#deriv(Ev[2:10]) <-  if (t >= (ivm_on_1) && t < (ivm_on_1 + eff_len)) Ev[i-1] - Ev[i] - endec_mu*Ev[i] else if (t >= (ivm_on_2) && t < (ivm_on_2 + eff_len)) Ev[i-1] - Ev[i] - endec_mu*Ev[i] else if (t >= (ivm_on_3) && t < (ivm_on_3 + eff_len)) Ev[i-1] - Ev[i] - endec_mu*Ev[i] else Ev[i-1] - Ev[i] - mu*Ev[i]
+
+#deriv(Iv) <-  if (t >= (ivm_on_1) && t < (ivm_on_1 + eff_len))  Ev[10] - endec_mu*Iv else if (t >= (ivm_on_2) && t < (ivm_on_2 + eff_len))  Ev[10] - endec_mu*Iv else if (t >= (ivm_on_3) && t < (ivm_on_3 + eff_len))  Ev[10] - endec_mu*Iv  else Ev[10] - mu*Iv
+
+mv = Sv+sum(Ev)+Iv
 
 ##------------------------------------------------------------------------------
 ###################

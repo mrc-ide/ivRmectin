@@ -8,6 +8,7 @@ require(tidyverse)
 ivm_haz <- read.table("IVM_derivation/ivermectin_hazards.txt", header=TRUE) #Smit Hazard Ratios
 colnames(ivm_haz) = c("Day", "IVM_400_1_HS", "IVM_300_3_HS")
 
+
 stag_10 <- 11
 times_10_d <- seq(1, stag_10, length.out = 3)
 
@@ -15,15 +16,16 @@ ivm_haz <- ivm_haz %>%
   select(-IVM_400_1_HS) %>%
   filter(between(Day, 1, 23))
 
+ivm_haz_df <- as.data.frame(ivm_haz)
 
 shift_days_10_MDA_3 <- times_10_d[3] - times_10_d[1]
 
-max_day <- max(ivm_haz$Day)
+max_day <- max(ivm_haz_df$Day)
 new_days <- (max_day + 1):90 # whole thing will be completed within 90 days
 
 extra_rows_10d <- data.frame(Day = new_days, IVM_300_3_HS = 1)
 
-df_extended_10d <- rbind(ivm_haz, extra_rows_10d)
+df_extended_10d <- rbind(ivm_haz_df, extra_rows_10d)
 
 group1_HR <- c(df_extended_10d$IVM_300_3_HS[1:23], rep(1, 7),
                df_extended_10d$IVM_300_3_HS[1:23], rep(1, 7),
@@ -67,12 +69,12 @@ times_20_d <- seq(1, stag_20, length.out = 3)
 
 shift_days_20_MDA_3 <- times_20_d[3] - times_20_d[1]
 
-max_day <- max(ivm_haz$Day)
+max_day <- max(ivm_haz_df$Day)
 new_days <- (max_day + 1):123
 
 extra_rows_20d <- data.frame(Day = new_days, IVM_300_3_HS = 1)
 
-df_extended_20d <- rbind(ivm_haz, extra_rows_20d)
+df_extended_20d <- rbind(ivm_haz_df, extra_rows_20d)
 
 to_add <- nrow(df_extended_20d) - 90
 
@@ -145,7 +147,8 @@ HR_plot <- ggplot(HR_all_long, aes(x = Day, y = HR, group = group))+
     "HR_use_above1" = "black"), labels= c("Group 1", "Group 2", "Group 3", "Group average"),
     name = "Hazard ratio group"
   )+
-  labs(linetype = "Average or group-level", y = "Hazard ratio")
+  labs(linetype = "Average or group-level", y = "Hazard ratio")+
+  ggtitle("Staggered distribution")
 
 
 time_cov_plot <- ggplot(HR_all, aes(x = Day, y = prop_pop_cov))+
@@ -155,11 +158,50 @@ time_cov_plot <- ggplot(HR_all, aes(x = Day, y = prop_pop_cov))+
   theme_bw()+
   ylim(0,1)
 
-cowplot::plot_grid(HR_plot, time_cov_plot, align = "v",
+write_rds(HR_all_long, file = "analysis/target-profiles-distrib-strat/chapter/output/HR_staggered_long.rds")
+write_rds(HR_all, file = "analysis/target-profiles-distrib-strat/chapter/output/HR_staggered.rds")
+
+HR_all_in_one_plot <- ggplot(ivm_haz, aes(x = Day, y = IVM_300_3_HS))+
+  geom_line()+
+  geom_point()+
+  theme_bw()+
+  ylim(0,10)+
+  ylab("Hazard ratio")+
+  ggtitle("All in one")
+
+
+
+staggered_HR <- cowplot::plot_grid(HR_plot, time_cov_plot, align = "v",
                    nrow = 2)
 
+HR_figure <- cowplot::plot_grid(HR_all_in_one_plot, staggered_HR)
 
 
+
+df_all <-df_extended_10d_new_HR %>%
+  select(Day, group1) %>%
+  rename(HR_use_above1 = group1) %>% #giving this name so easy to bind with others
+  mutate(HR_use_above1 = case_when(HR_use_above1 == 1 ~ round(1/1),
+                                     TRUE ~ HR_use_above1)) %>%
+  mutate(stagger = "all_in_one") %>%
+  rowwise() %>%
+  mutate(
+         prop_pop_cov = sum(c_across(HR_use_above1) > 1)/1)
+
+
+
+HR_plot_all_1 <- ggplot(df_all, aes(x = Day, y = HR_use_above1))+
+  geom_line()+
+  theme_minimal()+
+  ylab("Hazard Ratio")
+
+time_cov_all_1 <- ggplot(df_all, aes(x = Day, y = prop_pop_cov))+
+  geom_line()+
+  theme_minimal()+
+  ylab("prop_pop_cov")
+
+cowplot::plot_grid(HR_plot_all_1, time_cov_all_1, align = "v",
+                   nrow = 2)
 
 distr_pals <- c('#e41a1c','#377eb8','#4daf4a','#984ea3')
 
@@ -228,11 +270,11 @@ runfun <- function(mod_name){
 #distr plan
 start <- (365*5)+200 #time for starting distr, help get to reach eqm, and to distr at right time when seasonality introduced
 
-Q0_in <- c(0.21, 0.71, 0.92, 0.94)
+#Q0_in <- c(0.21, 0.71, 0.92, 0.94)
 Q0_in <- 0.92
 init_EIR_in <- c(2, 100)
-init_EIR_in <- 100
-target_cov <- c(0.6, 0.7, 0.8)
+#init_EIR_in <- 100
+#target_cov <- c(0.6, 0.7, 0.8)
 target_cov <- 0.7
 
 df_var_all <- expand.grid(Q0 = Q0_in, ivm_cov = target_cov, init_EIR = init_EIR_in)
@@ -291,7 +333,7 @@ my_sim_mod_10d_stag <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_age_wt, prop_human_HR, ivm_cov_par, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0,  ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "10d-stagger"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
@@ -312,7 +354,7 @@ df_mod_10d_stag %>%
             min_cov = min(ivm_cov),
             max_cov = max(ivm_cov))
 
-#then 30d stagger
+#then 20d stagger
 ivm_parms_20d_stag <- ivRmectin::ivm_fun_stag_cov(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
   IVM_start_times = start,
   prop_human_HR_threshold = df_extended_20d_new_HR$prop_pop_cov,
@@ -356,7 +398,7 @@ my_sim_mod_20d_stag <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_age_wt, prop_human_HR, ivm_cov_par, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "20d-stagger"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
@@ -366,8 +408,9 @@ df_mod_20d_stag <- my_sim_mod_20d_stag()
 #all-in-one
 ivm_parms_all <- ivRmectin::ivm_fun(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
   IVM_start_times = c(start, start + 30, start + 60),
+  #IVM_start_times = start,
   time_period = time_period,
-  hazard_profile = ivm_haz$IVM_300_3_HS[1:23],
+  hazard_profile = df_all$HR_use_above1[1:23],
   #hazard_profile = hazzy,
   ivm_coverage=0.8, #gets updated in function
   ivm_min_age=5,
@@ -405,13 +448,160 @@ my_sim_mod_all <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Svtot, Evtot, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "all-in-one"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
 
 df_mod_all <- my_sim_mod_all()
 
+#checking against the all-in-one in the staggered model
+ivm_parms_all_stag <- ivRmectin::ivm_fun_stag_cov(#IVM_start_times = c(3120, 3150, 3180), #distribution every 3 months
+  IVM_start_times = start,
+  time_period = time_period,
+  hazard_profile = df_all$HR_use_above1,
+  prop_human_HR_threshold = df_all$prop_pop_cov, #still passing into ivm compartment but experience HR of 1
+  #hazard_profile = hazzy,
+  ivm_coverage=0.8, #gets updated in function
+  ivm_min_age=5,
+  ivm_max_age = 90)
+
+
+df_all <- df_all %>%
+  mutate(t = Day+start-1)
+
+ivm_parms_all_stag$eff_len
+
+ggplot(df_all, aes(x = Day, y = HR_use_above1))+
+  geom_line()+
+  geom_point()
+
+mod_all_stag <-  function(data_in){
+  Q0_in <- data_in[1]
+  ivm_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered_HS.R", package = "ivRmectin"),
+    num_int = 1,
+    #num_int = 2,
+    #ITN_IRS_on = 100,
+    #itn_cov = 0.75,
+    #het_brackets = 5,
+    #age = init_age,
+    init_EIR = init_EIR_in,
+    #country = "Senegal", # Country setting to be run - see admin_units_seasonal.rds in inst/extdata for more info
+    #admin2 = "Fatick",
+    ttt = ivm_parms_all_stag$ttt,
+    eff_len = ivm_parms_all_stag$eff_len,
+    prop_human_HR_threshold = ivm_parms_all_stag$prop_human_HR_threshold,
+    haz = ivm_parms_all_stag$haz,
+    ivm_cov_par = ivm_cov_in,
+    ivm_min_age = ivm_parms_all_stag$ivm_min_age,
+    ivm_max_age = ivm_parms_all_stag$ivm_max_age,
+    IVRM_start = ivm_parms_all_stag$IVRM_start,
+    Q0 = Q0_in
+  )
+  return(output)
+}
+
+my_sim_mod_all_stag <- function(){
+  mod_out_list <- lapply(my_list_all, mod_all_stag)
+  res_mod_out <- lapply(mod_out_list, runfun)
+  mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
+    df <- as.data.frame(res_mod_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5,Svtot, Evtot, Ivtot,EIR_tot, EIRout, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "all-in-one-stag"))}, simplify = F))
+  return(mod_df)
+} #adding mvtot_1 and 2 and 3 so can rbind onto the rest
+
+df_mod_all_stag <- my_sim_mod_all_stag()
+
+#compare stag and normal code, for just one distribution (i.e. not actually any staggering.)
+df_mod_compare <- rbind(df_mod_all, df_mod_all_stag)
+
+df_mod_compare <- df_mod_compare %>%
+  mutate(init_EIR = case_when(ref == 1 ~ 2,
+                             TRUE ~ 100)) %>%
+  filter(init_EIR == 100)
+
+ggplot(df_mod_compare, aes(x = t, y = 1-ivm_cov, col = as.factor(model_type)))+
+  geom_line()
+
+ggplot(df_mod_compare, aes(x = t, y = ivm_cov, col = as.factor(model_type)))+
+  geom_line()+
+  xlim(2000, 2200)+
+  ylab("Ivermectin coverage")
+
+ggplot(df_mod_compare, aes(x = t, y = (ivm_cov + (1-ivm_cov)), col = as.factor(model_type)))+
+  geom_line()
+
+ggplot(df_mod_compare, aes(x = t, y = mv, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2200)+
+  ylim(20,45)
+
+ggplot(df_mod_compare, aes(x = t, y = Ivtot, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2200)
+
+ggplot(df_mod_compare, aes(x = t, y = Svtot, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2200)
+
+ggplot(df_mod_compare, aes(x = t, y = Evtot, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2200)
+
+ggplot(df_mod_compare, aes(x = t, y = EIRout, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2200)
+
+ggplot(df_mod_compare, aes(x = t, y = slide_prev0to5*100, col = as.factor(model_type)))+
+  geom_line()+
+  theme_minimal()+
+  xlim(2000, 2500)+
+  ylim(0,100)+
+  ylab("Slide prevalence (%) under 5s")
+
+haz_check_all <- ivm_parms_all$haz
+haz_check_stag <- ivm_parms_all_stag$haz
+
+
+haz_check_all == haz_check_stag[1:23]
+
+haz_check_all == haz_check_stag[31:53]
+
+haz_check_all == haz_check_stag[61:83]
+
+
+df_mod_compare %>%
+  filter(between(t,start, start+90))%>%
+  group_by(model_type)%>%
+  summarise(tot_mosq = sum(mv),
+            mean_EIR = mean(EIR_tot),
+            mean_prev = mean(slide_prev0to5),
+            tot_Iv = sum(Ivtot))
+
+
+ggplot(df_mod_compare, aes(x = t, y = clin_inc0to5*1000, col = as.factor(model_type)))+
+  geom_line()+
+  ylim(0, 6)+
+  xlim(start, start + 90)
+
+ggplot(df_mod_compare, aes(x = t, y = slide_prev0to5, col = as.factor(model_type)))+
+  geom_line()+
+  ylim(0, 1)+
+  xlim(2000, 2500)
+
+ggplot(df_mod_compare, aes(x = t, y = mv, col = as.factor(model_type)))+
+  geom_line()+
+  xlim(start, start+100)+
+  geom_point()
 #baseline scenario
 
 mod_baseline <-  function(data_in){
@@ -446,7 +636,7 @@ my_sim_mod_baseline <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "baseline"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
@@ -455,7 +645,7 @@ df_mod_baseline <- my_sim_mod_baseline()
 
 df_mod_distr <- do.call("rbind", list(df_mod_10d_stag, df_mod_20d_stag, df_mod_all, df_mod_baseline))
 
-write_rds(df_mod_distr, file = "analysis/target-profiles-distrib-strat/chapter/output/df_distr_HR_3m.rds")
+write_rds(df_mod_distr, file = "analysis/target-profiles-distrib-strat/chapter/output/df_distr_HR_3m_HS.rds")
 
 #with seasonality
 
@@ -466,7 +656,7 @@ mod_10d_stag_Sen <-  function(data_in){
   ivm_cov_in <- data_in[2]
   init_EIR_in <- data_in[3]
   output <- ivRmectin:::create_r_model(
-    odin_model_path = system.file("extdata/odin_model_endectocide.R", package = "ivRmectin"),
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered_HS.R", package = "ivRmectin"),
     num_int = 1,
     #num_int = 2,
     #ITN_IRS_on = 100,
@@ -479,6 +669,7 @@ mod_10d_stag_Sen <-  function(data_in){
     ttt = ivm_parms_10d_stag$ttt,
     eff_len = ivm_parms_10d_stag$eff_len,
     haz = ivm_parms_10d_stag$haz,
+    prop_human_HR_threshold = ivm_parms_10d_stag$prop_human_HR_threshold,
     ivm_cov_par = ivm_cov_in,
     ivm_min_age = ivm_parms_10d_stag$ivm_min_age,
     ivm_max_age = ivm_parms_10d_stag$ivm_max_age,
@@ -493,7 +684,7 @@ my_sim_mod_10d_stag_Sen <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "10d-stagger-Sen"))}, simplify = F))
   return(mod_df)
 }
@@ -507,7 +698,7 @@ mod_20d_stag_Sen <-  function(data_in){
   ivm_cov_in <- data_in[2]
   init_EIR_in <- data_in[3]
   output <- ivRmectin:::create_r_model(
-    odin_model_path = system.file("extdata/odin_model_endectocide.R", package = "ivRmectin"),
+    odin_model_path = system.file("extdata/odin_model_endectocide_staggered_HS.R", package = "ivRmectin"),
     num_int = 1,
     #num_int = 2,
     #ITN_IRS_on = 100,
@@ -520,6 +711,7 @@ mod_20d_stag_Sen <-  function(data_in){
     ttt = ivm_parms_20d_stag$ttt,
     eff_len = ivm_parms_20d_stag$eff_len,
     haz = ivm_parms_20d_stag$haz,
+    prop_human_HR_threshold = ivm_parms_20d_stag$prop_human_HR_threshold,
     ivm_cov_par = ivm_cov_in,
     ivm_min_age = ivm_parms_20d_stag$ivm_min_age,
     ivm_max_age = ivm_parms_20d_stag$ivm_max_age,
@@ -534,7 +726,7 @@ my_sim_mod_20d_stag_Sen <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "20d-stagger-Sen"))}, simplify = F))
   return(mod_df)
 }
@@ -574,7 +766,7 @@ my_sim_mod_all_Sen <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "all-in-one-Sen"))}, simplify = F))
   return(mod_df)
 } #adding mvtot_1 and 2 and 3 so can rbind onto the rest
@@ -614,7 +806,7 @@ my_sim_mod_baseline_Sen <- function(){
   res_mod_out <- lapply(mod_out_list, runfun)
   mod_df <- do.call(rbind, sapply(1:(nrow(df_var_all)), function(x){
     df <- as.data.frame(res_mod_out[[x]])
-    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, clin_inc0to5))
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, Ivtot,EIR_tot, EIRout, clin_inc0to5))
     df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "baseline-Sen"))}, simplify = F))
   return(mod_df)
 }
@@ -623,4 +815,4 @@ df_mod_baseline_Sen <- my_sim_mod_baseline_Sen()
 
 df_mod_distr_Sen <- do.call("rbind", list(df_mod_10d_stag_Sen, df_mod_20d_stag_Sen, df_mod_all_Sen, df_mod_baseline_Sen))
 
-write_rds(df_mod_distr_Sen, file = "analysis/target-profiles-distrib-strat/chapter/output/df_distr_HR_Sen_3m.rds")
+write_rds(df_mod_distr_Sen, file = "analysis/target-profiles-distrib-strat/chapter/output/df_distr_HR_Sen_3m_HS.rds")
