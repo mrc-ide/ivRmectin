@@ -86,8 +86,8 @@ ivm_fun_stag_cov <- function(IVM_start_times, time_period, hazard_profile, prop_
 
     for (i in seq_along(IVRM_st)) {
       start_day <- IVRM_st[i]
-      idx <- which(ttt >= start_day-1 & ttt < start_day + eff_len-1) #days when intervention is on
-
+      #idx <- which(ttt >= start_day-1 & ttt < start_day + eff_len-1) #days when intervention is on
+      idx <- which(ttt >= start_day & ttt < start_day + eff_len-1) #days when intervention is on
       # Only assign if there's enough length in prop_human_HR_threshold
       if (length(idx) > 0 && length(prop_human_HR_threshold) >= length(idx)) {
         prop[idx] <- prop_human_HR_threshold[1:length(idx)]
@@ -97,6 +97,8 @@ ivm_fun_stag_cov <- function(IVM_start_times, time_period, hazard_profile, prop_
     }
     return(prop)
   }
+
+
 
   ttt = 0:time_period
   eff_len = length(hazard_profile)
