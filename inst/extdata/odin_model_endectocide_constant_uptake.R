@@ -231,6 +231,9 @@ rel_foi[] <- user()
 dim(EIR) <- c(na,nh,num_int)
 EIR[,,] <- av_human[k] * rel_foi[j] * foi_age[i] * Ivtot/omega
 EIR_tot <- sum(EIR[,,])
+dim(EIRweight) <- c(na,nh,num_int)
+EIRweight[,,] <- (T[i,j,k] + A[i,j,k] + D[i,j,k] + U[i,j,k] + P[i,j,k] + S[i,j,k])*EIR[i,j,k]
+EIRout <- sum(EIRweight[,,])
 output(Ivout) <- Ivtot
 
 output(omega) <- omega
@@ -764,3 +767,4 @@ output(Ix_dead) <- Ix_dead
 output(mvx_dead) <- mvx_dead
 output(Q0) <- Q0
 output(bites_Bed) <- bites_Bed
+output(EIRout) <- EIRout
