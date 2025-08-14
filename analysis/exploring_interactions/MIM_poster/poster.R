@@ -26,13 +26,13 @@ IVM_start1 <- c(IVM_begin1, IVM_begin1+mda_int, IVM_begin1+mda_int+mda_int)
 
 #when nets are 1yo
 
-IVM_begin2 <- net_seq[3]+(1*365)
-IVM_start2 <- c(IVM_begin2, IVM_begin2+mda_int, IVM_begin2 + mda_int + mda_int)
-
-y2.5 <- (365*2.5)
-#when nets are 2.5yo
-IVM_begin3 <- net_seq[3]+y2.5
-IVM_start3 <- c(IVM_begin3, IVM_begin3+mda_int, IVM_begin3+mda_int+mda_int)
+#IVM_begin2 <- net_seq[3]+(1*365)
+#IVM_start2 <- c(IVM_begin2, IVM_begin2+mda_int, IVM_begin2 + mda_int + mda_int)
+#
+#y2.5 <- (365*2.5)
+##when nets are 2.5yo
+#IVM_begin3 <- net_seq[3]+y2.5
+#IVM_start3 <- c(IVM_begin3, IVM_begin3+mda_int, IVM_begin3+mda_int+mda_int)
 
 lines <- c("antag_LLIN" = "dotted", "antag_LLIN_IVM" = "solid")
 
@@ -40,6 +40,7 @@ sp_pals <- c('#1b9e77','#d95f02','#7570b3','#e7298a')
 
 #DYNAMICS
 
+#IVM starts 6m after LLIN distribution
 dynamics_plot <- ggplot(mods_dynamics, aes(x = t/365, y = slide_prev0to5*100, linetype = as.factor(model), col = as.factor(species)))+
   geom_line(linewidth = 1)+
   theme_minimal()+
@@ -81,16 +82,18 @@ ggsave(dynamics_plot, file = "analysis/exploring_interactions/MIM_poster/dynamic
 #proportion of cases averted when adding endectocides
 
 rel_red_prev <- mods %>%
-  filter(between(t, IVM_start1[1], IVM_start3[3]+23)) %>%
+  #filter(between(t, IVM_start1[1], IVM_start3[3]+23)) %>% #look in ivermectin kill time only
   #filter(d_ITN0 == res[1] & itn_cov == 0.8 & model %in% c("antag_LLIN", "antag_LLIN_IVM")) %>%
+
+  filter(t == IVM_start1[3]+28) %>% #4 weeks after last MDA
   filter(itn_cov == 0.8 & model %in% c("antag_LLIN", "antag_LLIN_IVM")) %>%
   select(t, d_ITN0, species, slide_prev0to5, model) %>%
   spread(key = model, value = slide_prev0to5) %>%
   group_by(species, d_ITN0) %>%
-  summarise(mean_prev_antag_LLIN = mean(antag_LLIN),
-            mean_prev_antag_LLIN_IVM = mean(antag_LLIN_IVM)) %>%
-  mutate(red_prev = ((mean_prev_antag_LLIN - mean_prev_antag_LLIN_IVM)/mean_prev_antag_LLIN)*100,
-         abs_prev = mean_prev_antag_LLIN - mean_prev_antag_LLIN_IVM)
+  summarise(prev_antag_LLIN = antag_LLIN,
+            prev_antag_LLIN_IVM = antag_LLIN_IVM) %>%
+  mutate(red_prev = ((prev_antag_LLIN - prev_antag_LLIN_IVM)/prev_antag_LLIN)*100,
+         abs_prev = prev_antag_LLIN - prev_antag_LLIN_IVM)
 
 res_pals <- c("#1f78b4", "#33a02c")
 
@@ -121,7 +124,7 @@ efficacy_species_plot_abs <- ggplot(no_res, aes(x = species, y = abs_prev))+
 ggsave(efficacy_species_plot_abs, file = "analysis/exploring_interactions/MIM_poster/eff_sp_plot_abs.svg")
 
 
-#by EIR
+#by EIR. Need to change EIR output!
 rel_red_eir <- mods %>%
   filter(between(t, IVM_start1[1], IVM_start3[3]+23)) %>%
   #filter(d_ITN0 == res[1] & itn_cov == 0.8 & model %in% c("antag_LLIN", "antag_LLIN_IVM")) %>%
@@ -179,20 +182,20 @@ dynamics_res_plot <- ggplot(mod_dynamics_res, aes(x = t/365, y = slide_prev0to5*
 #model performance plot
 
 model_compare_prev <- mods %>%
-  filter(between(t, IVM_start1[1], IVM_start3[3]+23)) %>%
+  filter(t == IVM_start1[3]+28) %>% #4 weeks after last MDA
   #filter(d_ITN0 == res[1] & itn_cov == 0.8 & model %in% c("antag_LLIN", "antag_LLIN_IVM")) %>%
   #filter(itn_cov == 0.8 & model %in% c("antag_LLIN", "antag_LLIN_IVM")) %>%
   select(t, d_ITN0, itn_cov, species, slide_prev0to5, model) %>%
   spread(key = model, value = slide_prev0to5) %>%
   group_by(species, d_ITN0, itn_cov) %>%
-  summarise(mean_prev_antag_LLIN = mean(antag_LLIN),
-            mean_prev_antag_LLIN_IVM = mean(antag_LLIN_IVM),
-            mean_prev_add_LLIN = mean(add_LLIN),
-            mean_prev_add_LLIN_IVM = mean(add_LLIN_IVM)) %>%
-  mutate(red_prev_antag = ((mean_prev_antag_LLIN - mean_prev_antag_LLIN_IVM)/mean_prev_antag_LLIN)*100,
-         red_prev_add = ((mean_prev_add_LLIN - mean_prev_add_LLIN_IVM)/mean_prev_add_LLIN)*100,
-         abs_prev_antag = mean_prev_antag_LLIN - mean_prev_antag_LLIN_IVM,
-         abs_prev_add = mean_prev_add_LLIN - mean_prev_add_LLIN_IVM)
+  summarise(prev_antag_LLIN = antag_LLIN,
+            prev_antag_LLIN_IVM = antag_LLIN_IVM,
+            prev_add_LLIN = add_LLIN,
+            prev_add_LLIN_IVM = add_LLIN_IVM) %>%
+  mutate(red_prev_antag = ((prev_antag_LLIN - prev_antag_LLIN_IVM)/prev_antag_LLIN)*100,
+         red_prev_add = ((prev_add_LLIN - prev_add_LLIN_IVM)/prev_add_LLIN)*100,
+         abs_prev_antag = prev_antag_LLIN - prev_antag_LLIN_IVM,
+         abs_prev_add = prev_add_LLIN - prev_add_LLIN_IVM)
 
 
 model_compare_EIR <- mods %>%
@@ -216,8 +219,12 @@ lm_models <- lm(red_prev_add ~ red_prev_antag, data = model_compare_prev)
 summary(lm_models) #adj r2 0.9659
 adjusted_r_squared <- summary(lm_models)$adj.r.squared
 
-model_comparison_plot_prev <- ggplot(model_compare_prev, aes(x = red_prev_antag, y = red_prev_add, col = species, shape = as.factor(d_ITN0), size = as.factor(itn_cov),
-                          group = 1))+
+model_comparison_plot_prev <- ggplot(model_compare_prev, aes(x = red_prev_antag,
+                                                             y = red_prev_add,
+                                                             col = as.factor(species),
+                                                             shape = as.factor(d_ITN0),
+                                                             size = as.factor(itn_cov),
+                                                             group = 1))+
   geom_point(alpha = 0.8)+
   scale_colour_manual(values = sp_pals, labels = c("arabiensis", "funestus", "gambiae", "stephensi"),
                       name = "Anopheles species")+
@@ -226,11 +233,10 @@ model_comparison_plot_prev <- ggplot(model_compare_prev, aes(x = red_prev_antag,
                      name = "Pyrethroid resistance")+
   labs(x = "Efficacy of endectocide (model A)", y = "Efficacy of endectocide (model B)")+
   theme_minimal()+
-  theme(legend.position = c(0.9, 0.3))+
-  ylim(3, 8)+
-  xlim(3, 8)+
+  theme(legend.position = c(0.7, 0.3))+
+  coord_cartesian(xlim = c(0, 30), ylim = c(0, 30))+
   geom_smooth(method="lm", se = FALSE, show.legend = FALSE, lty = "dashed")+
-  annotate("text", label = "italic(R)^2 == 0.9659", parse = TRUE, x =6, y = 7, col = "blue", size = 6)+
+  annotate("text", label = "italic(R)^2 == 0.9659", parse = TRUE, x =20, y = 30, col = "blue", size = 6)+
   theme(axis.text.x = element_text(size = 20),
         axis.text.y = element_text(size = 20),
         axis.title.x = element_text(size = 20),
