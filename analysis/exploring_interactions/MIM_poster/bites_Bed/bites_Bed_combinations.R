@@ -223,12 +223,13 @@ my_sim_antag_ITN_bb_res <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df,t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-res"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-res", int = "ITN"))}, simplify = F))
   return(pyr_out_df_antag_ITN)
 
 }
 
 antag_ITN_bb_res <- my_sim_antag_ITN_bb_res()
+saveRDS(antag_ITN_bb_res, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_res_ITN.rds")
 
 my_sim_antag_ITN_bb_cov <- function(){
   #pyr_out_list_antag_ITN <- purrr::map2(y, x, antag_ITN_cov_loop) #loop through all parameter values
@@ -238,12 +239,14 @@ my_sim_antag_ITN_bb_cov <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df,t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-cov"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-cov", int = "ITN"))}, simplify = F))
   return(pyr_out_df_antag_ITN)
 
 }
 
 antag_ITN_bb_cov <- my_sim_antag_ITN_bb_cov()
+saveRDS(antag_ITN_bb_cov, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN.rds")
+
 
 my_sim_antag_ITN_bb_Q0 <- function(){
   #pyr_out_list_antag_ITN <- purrr::map2(y, x, antag_ITN_cov_loop) #loop through all parameter values
@@ -253,12 +256,13 @@ my_sim_antag_ITN_bb_Q0 <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df,t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-Q0"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb-Q0", int = "ITN"))}, simplify = F))
   return(pyr_out_df_antag_ITN)
 
 }
 
 antag_ITN_bb_Q0 <- my_sim_antag_ITN_bb_Q0()
+saveRDS(antag_ITN_bb_cov, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN.rds")
 
 
 #antag with IVM
@@ -306,12 +310,15 @@ my_sim_antag_ITN_IVM_bb_res <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN_IVM[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df, t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_res"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_res", int = "ITN_IVM"))}, simplify = F))
   return(pyr_out_df_antag_ITN_IVM)
 
 }
 
 antag_ITN_IVM_bb_res <- my_sim_antag_ITN_IVM_bb_res()
+saveRDS(antag_ITN_IVM_bb_res, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_res_ITN_IVM.rds")
+
+
 
 my_sim_antag_ITN_IVM_bb_cov <- function(){
   #pyr_out_list_antag_ITN_IVM <- purrr::map2(y, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
@@ -321,12 +328,14 @@ my_sim_antag_ITN_IVM_bb_cov <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN_IVM[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df, t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_cov"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_cov", int = "ITN_IVM"))}, simplify = F))
   return(pyr_out_df_antag_ITN_IVM)
 
 }
 
 antag_ITN_IVM_bb_cov <- my_sim_antag_ITN_IVM_bb_cov()
+saveRDS(antag_ITN_IVM_bb_cov, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN_IVM.rds")
+
 
 my_sim_antag_ITN_IVM_bb_Q0 <- function(){
   #pyr_out_list_antag_ITN_IVM <- purrr::map2(y, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
@@ -336,22 +345,10 @@ my_sim_antag_ITN_IVM_bb_Q0 <- function(){
     df <- as.data.frame(res_pyr_out_antag_ITN_IVM[[x]])
     df2 <- as.data.frame(dplyr::select(.data = df, t, mu, mv, avhc, itn_cov, EIR_tot, slide_prev0to5,
                                        d_ITN0, r_ITN0, itn_loss, bites_Bed, Q0, IVRM_sr, s_ITN, d_ITN, r_ITN, EIRout, clin_inc0to5))
-    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_Q0"))}, simplify = F))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, scenario = "bb_Q0", int = "ITN_IVM"))}, simplify = F))
   return(pyr_out_df_antag_ITN_IVM)
 
 }
 
-antag_ITN_IVM_bb_cov <- my_sim_antag_ITN_IVM_bb_Q0()
-
-
-#bound antag models
-antag_LLIN <- antag_ITN %>%
-  mutate(model = "antag_LLIN")
-antag_LLIN_IVM <- antag_ITN_IVM %>%
-  mutate(model = "antag_LLIN_IVM")
-
-#antag <- rbind(antag_LLIN, antag_LLIN_IVM)
-#add <- rbind(add_LLIN, add_LLIN_IVM)
-saveRDS(antag, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/antag_bb_combos.rds")
-#saveRDS(add, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/add.rds")
-
+antag_ITN_IVM_bb_Q0 <- my_sim_antag_ITN_IVM_bb_Q0()
+saveRDS(antag_ITN_IVM_bb_Q0, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_Q0_ITN_IVM.rds")
