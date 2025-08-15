@@ -142,7 +142,7 @@ for (i in seq_len(nrow(bb_res_df))){
 }
 
 ##
-bb_cov_df <-left_join(bb_res_grid,
+bb_cov_df <-left_join(bb_cov_grid,
                       df_pyr_only %>% dplyr::select(dn0_med, rn0_med, gamman_med, resistance),
                       by = c("dn0_med")) %>%
   #mutate(net_type = "pyrethroid only") %>%
@@ -152,13 +152,13 @@ bb_cov_df <-left_join(bb_res_grid,
 
 #filter to make it really simple
 bb_cov_df <- bb_cov_df %>%
-  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  filter(init_EIR == 100) %>% #high transmission setting
   select(-resistance)
 dim(bb_cov_df) #20.7
 
 bb_cov_list <- list()
 
-for (i in seq_len(nrow(bb_res_df))){
+for (i in seq_len(nrow(bb_cov_df))){
   bb_cov_list[[i]] <- as.numeric(bb_cov_df[i,])
 }
 ##
@@ -166,7 +166,7 @@ bb_Q0_df <- left_join(bb_Q0_grid,
                        df_pyr_only %>% dplyr::select(dn0_med, rn0_med, gamman_med, resistance),
                        by = c("dn0_med")) %>%
   #mutate(net_type = "pyrethroid only") %>%
-  mutate(gamman_med = gamman_med*365, Q0 = 0.95, itn_cov = 0.8) %>%
+  mutate(gamman_med = gamman_med*365, itn_cov = 0.8) %>%
   rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
 
 
@@ -265,15 +265,7 @@ my_sim_antag_ITN_bb_Q0 <- function(){
 }
 
 antag_ITN_bb_Q0 <- my_sim_antag_ITN_bb_Q0()
-saveRDS(antag_ITN_bb_cov, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN.rds")
-
-bites_Bed_in <- itn_type_ivm_param[1]
-d_ITN0_in <- itn_type_ivm_param[2]
-init_EIR_in <- itn_type_ivm_param[3]
-itn_cov_in <-itn_type_ivm_param[4]
-Q0_in <- itn_type_ivm_param[5]
-r_ITN0_in <- itn_type_ivm_param[6]
-itn_half_life_in <- itn_type_ivm_param[7]
+saveRDS(antag_ITN_bb_Q0, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_Q0_ITN.rds")
 
 #antag with IVM
 antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
