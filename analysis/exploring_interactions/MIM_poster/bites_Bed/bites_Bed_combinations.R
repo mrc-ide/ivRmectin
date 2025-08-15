@@ -133,6 +133,7 @@ bb_res_df <- bb_res_df %>%
   filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
   select(-resistance)
 bb_res_df
+#bb_res_df <- bb_res_df[1:3,]
 dim(bb_res_df) #20,7
 bb_res_list <- list()
 
@@ -179,6 +180,7 @@ bb_Q0_list <- list()
 for (i in seq_len(nrow(bb_Q0_df))){
   bb_Q0_list[[i]] <- as.numeric(bb_Q0_df[i,])
 }
+
 
 antag_ITN_cov_loop <- function(itn_type_ivm_param){
   bites_Bed_in <- itn_type_ivm_param[1]
@@ -229,6 +231,7 @@ my_sim_antag_ITN_bb_res <- function(){
 }
 
 antag_ITN_bb_res <- my_sim_antag_ITN_bb_res()
+
 saveRDS(antag_ITN_bb_res, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_res_ITN.rds")
 
 my_sim_antag_ITN_bb_cov <- function(){
@@ -264,16 +267,23 @@ my_sim_antag_ITN_bb_Q0 <- function(){
 antag_ITN_bb_Q0 <- my_sim_antag_ITN_bb_Q0()
 saveRDS(antag_ITN_bb_cov, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN.rds")
 
+bites_Bed_in <- itn_type_ivm_param[1]
+d_ITN0_in <- itn_type_ivm_param[2]
+init_EIR_in <- itn_type_ivm_param[3]
+itn_cov_in <-itn_type_ivm_param[4]
+Q0_in <- itn_type_ivm_param[5]
+r_ITN0_in <- itn_type_ivm_param[6]
+itn_half_life_in <- itn_type_ivm_param[7]
 
 #antag with IVM
 antag_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
-  d_ITN0_in <- itn_type_ivm_param[1]
-  itn_cov_in <-itn_type_ivm_param[2]
-  bites_Bed_in <- itn_type_ivm_param[3]
-  init_EIR_in <- itn_type_ivm_param[4]
-  r_ITN0_in <- itn_type_ivm_param[5]
-  itn_half_life_in <- itn_type_ivm_param[6]
-  Q0_in <- itn_type_ivm_param[7]
+  bites_Bed_in <- itn_type_ivm_param[1]
+  d_ITN0_in <- itn_type_ivm_param[2]
+  init_EIR_in <- itn_type_ivm_param[3]
+  itn_cov_in <-itn_type_ivm_param[4]
+  Q0_in <- itn_type_ivm_param[5]
+  r_ITN0_in <- itn_type_ivm_param[6]
+  itn_half_life_in <- itn_type_ivm_param[7]
   #IVRM_start_in <- ivm_nets_starting
   output <- ivRmectin::create_r_model(
     odin_model_path = system.file("extdata/odin_model_endectocide.R", package = "ivRmectin"),
