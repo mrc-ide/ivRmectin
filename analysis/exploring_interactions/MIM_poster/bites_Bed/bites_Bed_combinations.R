@@ -126,7 +126,7 @@ bb_res_df <- left_join(bb_res_grid,
   #mutate(net_type = "pyrethroid only") %>%
   mutate(gamman_med = gamman_med*365) %>%
   rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
-
+saveRDS(bb_res_df, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/chapter_interactions_bb_res_df.rds")
 
 #filter to make it really simple
 bb_res_df <- bb_res_df %>%
