@@ -563,6 +563,27 @@ antag_ITN_IVM_bb_Q0 <- my_sim_antag_ITN_IVM_bb_Q0()
 saveRDS(antag_ITN_IVM_bb_Q0, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_Q0_ITN_IVM.rds")
 
 #constant uptake model for range of bites_Bed parameters and fixed ITN cov (0.8) and low resistance (0)
+bb_cov_df <-left_join(bb_cov_grid,
+                      df_pyr_only %>% dplyr::select(dn0_med, rn0_med, gamman_med, resistance),
+                      by = c("dn0_med")) %>%
+  #mutate(net_type = "pyrethroid only") %>%
+  mutate(gamman_med = gamman_med*365, Q0 = 0.95) %>%
+  rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
+
+
+#filter to make it really simple
+bb_cov_df_cons <- bb_cov_df %>%
+  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  select(-resistance)
+dim(bb_cov_df_cons)
+
+bb_cov_cons_list <- list()
+
+for (i in seq_len(nrow(bb_cov_df_cons))){
+  bb_cov_cons_list[[i]] <- as.numeric(bb_cov_df_cons[i,])
+}
+
+
 add_ITN_cov_loop <- function(itn_type_ivm_param){
   bites_Bed_in <- itn_type_ivm_param[1]
   d_ITN0_in <- itn_type_ivm_param[2]
@@ -598,9 +619,9 @@ add_ITN_cov_loop <- function(itn_type_ivm_param){
   return(output)
 }
 
-my_sim_antag_ITN_IVM_bb_Q0 <- function(){
+my_sim_antag_ITN_bb_cons <- function(){
   #pyr_out_list_antag_ITN_IVM <- purrr::map2(y, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
-  pyr_out_list_antag_ITN_IVM <- lapply(bb_list, antag_ITN_IVM_cov_loop)
+  pyr_out_list_antag_ITN_IVM <- lapply(bb_Q0_list, add_ITN_cov_loop)
   res_pyr_out_antag_ITN_IVM <- lapply(pyr_out_list_antag_ITN_IVM, runfun) #put these values into the model
   pyr_out_df_antag_ITN_IVM <- do.call(rbind, sapply(1:(nrow(bb_Q0_df)), function(x){
     df <- as.data.frame(res_pyr_out_antag_ITN_IVM[[x]])
@@ -611,9 +632,14 @@ my_sim_antag_ITN_IVM_bb_Q0 <- function(){
 
 }
 
+add_ITN_bb <- my_sim_antag_ITN_bb_cons()
+
+saveRDS(add_ITN_bb, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cons_ITN.rds")
+
+
 #with ivermectin, constant uptake model
 
-add_ITN_cov_loop <- function(itn_type_ivm_param){
+add_ITN_IVM_cov_loop <- function(itn_type_ivm_param){
   bites_Bed_in <- itn_type_ivm_param[1]
   d_ITN0_in <- itn_type_ivm_param[2]
   init_EIR_in <- itn_type_ivm_param[3]
@@ -635,7 +661,7 @@ add_ITN_cov_loop <- function(itn_type_ivm_param){
     ttt = ivm_parms1$ttt, # model specific parameter to control timing of endectocide delivery
     eff_len = ivm_parms1$eff_len, # number of days after receiving endectocide that HR is higher
     haz = ivm_parms1$haz, # hazard ratio for each off the eff_len number of days
-    ivm_cov_par = ivm_parms1, # proportion of popuulation receiving the endectocide
+    ivm_cov_par = ivm_parms1$ivm_cov_par, # proportion of popuulation receiving the endectocide
     ivm_min_age = ivm_parms1$ivm_min_age, # youngest age group receiving endectocide
     ivm_max_age = ivm_parms1$ivm_max_age, # oldest age group receiving endectocide
     IVRM_start = ivm_parms1$IVRM_start,
@@ -648,9 +674,9 @@ add_ITN_cov_loop <- function(itn_type_ivm_param){
   return(output)
 }
 
-my_sim_antag_ITN_IVM_bb_Q0 <- function(){
+my_sim_antag_ITN_IVM_bb <- function(){
   #pyr_out_list_antag_ITN_IVM <- purrr::map2(y, x, antag_ITN_IVM_cov_loop) #loop through all parameter values
-  pyr_out_list_antag_ITN_IVM <- lapply(bb_list, antag_ITN_IVM_cov_loop)
+  pyr_out_list_antag_ITN_IVM <- lapply(bb_Q0_list, add_ITN_IVM_cov_loop)
   res_pyr_out_antag_ITN_IVM <- lapply(pyr_out_list_antag_ITN_IVM, runfun) #put these values into the model
   pyr_out_df_antag_ITN_IVM <- do.call(rbind, sapply(1:(nrow(bb_Q0_df)), function(x){
     df <- as.data.frame(res_pyr_out_antag_ITN_IVM[[x]])
@@ -661,6 +687,9 @@ my_sim_antag_ITN_IVM_bb_Q0 <- function(){
 
 }
 
+add_ITN_IVM_bb <- my_sim_antag_ITN_IVM_bb()
+
+saveRDS(add_ITN_IVM_bb, file = "analysis/exploring_interactions/MIM_poster/bites_Bed/bb_IVM_ITN.rds")
 
 
 
