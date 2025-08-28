@@ -182,7 +182,7 @@ saveRDS(bb_res_df, file = "analysis/exploring_interactions/MIM_poster/chapter_pl
 
 #filter to make it really simple
 bb_res_df <- bb_res_df %>%
-  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  filter(init_EIR == 100 & itn_cov == 0.6) %>% #high transmission setting
   select(-resistance)
 bb_res_df
 #bb_res_df <- bb_res_df[1:3,]
@@ -206,7 +206,7 @@ saveRDS(bb_res_df2, file = "analysis/exploring_interactions/MIM_poster/chapter_p
 
 #filter to make it really simple
 bb_res_df2 <- bb_res_df2 %>%
-  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  filter(init_EIR == 100 & itn_cov == 0.6) %>% #high transmission setting
   select(-resistance)
 bb_res_df
 #bb_res_df <- bb_res_df[1:3,]
@@ -271,7 +271,7 @@ bb_Q0_df <- left_join(bb_Q0_grid,
 
 #filter to make it really simple
 bb_Q0_df <- bb_Q0_df %>%
-  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  filter(init_EIR == 100 & itn_cov == 0.6) %>% #high transmission setting
   select(-resistance)
 dim(bb_Q0_df)
 bb_Q0_list <- list()
@@ -573,7 +573,7 @@ bb_cov_df <-left_join(bb_cov_grid,
 
 #filter to make it really simple
 bb_cov_df_cons <- bb_cov_df %>%
-  filter(init_EIR == 100 & itn_cov == 0.8) %>% #high transmission setting
+  filter(init_EIR == 100 & itn_cov == 0.6) %>% #high transmission setting
   select(-resistance)
 dim(bb_cov_df_cons)
 
