@@ -231,6 +231,9 @@ rel_foi[] <- user()
 dim(EIR) <- c(na,nh,num_int)
 EIR[,,] <- av_human[k] * rel_foi[j] * foi_age[i] * Ivtot/omega
 EIR_tot <- sum(EIR[,,])
+dim(EIRweight) <- c(na,nh,num_int)
+EIRweight[,,] <- (T[i,j,k] + A[i,j,k] + D[i,j,k] + U[i,j,k] + P[i,j,k] + S[i,j,k])*EIR[i,j,k]
+EIRout <- sum(EIRweight[,,])
 output(Ivout) <- Ivtot
 
 output(omega) <- omega
@@ -660,6 +663,7 @@ output(w[]) <- TRUE
 output(fv) <- fv
 output(EIR[]) <- TRUE
 output(EIR_tot) <- EIR_tot
+output(EIRout) <-EIRout
 output(itn_cov) <- itn_cov
 output(ivm_cov) <- ivm_cov
 output(FOIv) <- FOIv
