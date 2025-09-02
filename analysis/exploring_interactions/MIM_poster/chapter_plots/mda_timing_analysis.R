@@ -286,6 +286,8 @@ my_sim_mod4 <- function(){
 
 
 df_baseline <- my_sim_mod4()
+saveRDS(df_baseline, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_baseline.rds")
+
 
 df_baseline <- df_baseline %>%
   mutate(bites_Bed = 0.95, ivm_cov = 0.7) #to help binding
@@ -338,10 +340,311 @@ my_sim_mod5 <- function(){
 }
 
 df_ITN <- my_sim_mod5()
+saveRDS(df_ITN, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_ITN.rds")
 
 
 
 df_timings <- do.call("rbind", list(df_baseline, df_ITN, df_var1_mda_early, df_var1_mda_medium, df_var1_mda_late))
+
+
+#MDA timing analysis in odin_model_malariasim_exp_decay.R####
+
+df_exp_decay_var <- df_var1 %>%
+  select(-ivm_cov)
+
+endec_mu_vec <- seq(0,1,0.1)
+wane_vec <- seq(0,1,0.1)
+
+malariasim_odin <- expand.grid(endec_mu_vec, wane_vec) %>%
+  rename(endec_mu = Var1,
+         wane = Var2)
+
+df_exp_decay <- cross_join(df_exp_decay_var, malariasim_odin)
+
+list_exp_decay <- list()
+
+for (i in seq_len(nrow(df_exp_decay))){
+  list_exp_decay[[i]] <- as.numeric(df_exp_decay[i,])
+}
+
+#early MDA
+
+mod1b <-  function(data_in){
+  d_ITN0_in <- data_in[1]
+  itn_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  bites_Bed_in <- data_in[4]
+  Q0_in <- data_in[5]
+  r_ITN0_in <- data_in[6]
+  itn_half_life_in <- data_in[7]
+  endec_mu_in <- data_in[8]
+  wane_in <- data_in[9]
+
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_malariasim_exp_decay.R", package = "ivRmectin"),
+    num_int = 2,
+    ITN_IRS_on = net_seq[1],
+    itn_cov = itn_cov_in,
+    bites_Bed = bites_Bed_in,
+    d_ITN0 = d_ITN0_in,
+    r_ITN0 = r_ITN0_in,
+    itn_half_life = itn_half_life_in,
+    Q0 = Q0_in,
+    init_EIR = init_EIR_in,
+    init_ft = 0,
+    #ivm parameters
+    ttt = ivm_parms1$ttt,
+    eff_len = ivm_parms1$eff_len,
+    haz = ivm_parms1$haz,
+    ivm_cov_par = 0, #redundant parameter
+    ivm_min_age = ivm_parms1$ivm_min_age,
+    ivm_max_age = ivm_parms1$ivm_max_age,
+    IVRM_start = ivm_parms1$IVRM_start,
+    endec_mu = endec_mu_in,
+    wane = wane_in
+
+  )
+  return(output)
+}
+
+my_sim_mod1b <- function(){
+  mod1_out_list <- lapply(list_exp_decay, mod1b)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_exp_decay)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIRout, Ivtot, IVRM_sr, bites_Bed, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "malariasim-exp-early-mda"))}, simplify = F))
+  return(mod1_df)
+}
+
+
+df_var1_mda_early_b <- my_sim_mod1b()
+#saveRDS(df_var1_mda_early_b, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_early_b.rds")
+
+
+#medium MDA
+
+mod2b <-  function(data_in){
+  d_ITN0_in <- data_in[1]
+  itn_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  bites_Bed_in <- data_in[4]
+  Q0_in <- data_in[5]
+  r_ITN0_in <- data_in[6]
+  itn_half_life_in <- data_in[7]
+  endec_mu_in <- data_in[8]
+  wane_in <- data_in[9]
+
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_malariasim_exp_decay.R", package = "ivRmectin"),
+    num_int = 2,
+    ITN_IRS_on = net_seq[1], #nets on 1y into sim
+    itn_cov = itn_cov_in,
+    bites_Bed = bites_Bed_in,
+    d_ITN0 = d_ITN0_in,
+    r_ITN0 = r_ITN0_in,
+    itn_half_life = itn_half_life_in,
+    Q0 = Q0_in,
+    init_EIR = init_EIR_in,
+    init_ft = 0,
+    #ivm parameters
+    ttt = ivm_parms2$ttt,
+    eff_len = ivm_parms2$eff_len,
+    haz = ivm_parms2$haz,
+    ivm_cov_par = 0, #redundant parameter
+    ivm_min_age = ivm_parms2$ivm_min_age,
+    ivm_max_age = ivm_parms2$ivm_max_age,
+    IVRM_start = ivm_parms2$IVRM_start,
+    endec_mu = endec_mu_in,
+    wane = wane_in
+
+  )
+  return(output)
+}
+
+my_sim_mod2b <- function(){
+  mod1_out_list <- lapply(list_exp_decay, mod2b)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_exp_decay)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIRout, Ivtot, IVRM_sr, bites_Bed, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "malariasim-exp-medium-mda"))}, simplify = F))
+  return(mod1_df)
+}
+
+
+df_var1_mda_medium_b <- my_sim_mod2b()
+#saveRDS(df_var1_mda_medium_b, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_medium.rds")
+
+#late MDA
+
+mod3b <-  function(data_in){
+  d_ITN0_in <- data_in[1]
+  itn_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  bites_Bed_in <- data_in[4]
+  Q0_in <- data_in[5]
+  r_ITN0_in <- data_in[6]
+  itn_half_life_in <- data_in[7]
+  endec_mu_in <- data_in[8]
+  wane_in <- data_in[9]
+
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_malariasim_exp_decay.R", package = "ivRmectin"),
+    num_int = 2,
+    ITN_IRS_on = net_seq[1], #nets on 1y into sim
+    itn_cov = itn_cov_in,
+    bites_Bed = bites_Bed_in,
+    d_ITN0 = d_ITN0_in,
+    r_ITN0 = r_ITN0_in,
+    itn_half_life = itn_half_life_in,
+    Q0 = Q0_in,
+    init_EIR = init_EIR_in,
+    init_ft = 0,
+    #ivm parameters
+    ttt = ivm_parms3$ttt,
+    eff_len = ivm_parms3$eff_len,
+    haz = ivm_parms3$haz,
+    ivm_cov_par = 0, #redundant parameter
+    ivm_min_age = ivm_parms3$ivm_min_age,
+    ivm_max_age = ivm_parms3$ivm_max_age,
+    IVRM_start = ivm_parms3$IVRM_start,
+    endec_mu = endec_mu_in,
+    wane = wane_in
+
+  )
+  return(output)
+}
+
+my_sim_mod3b <- function(){
+  mod1_out_list <- lapply(list_exp_decay, mod3b)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_exp_decay)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIRout, Ivtot, IVRM_sr, bites_Bed, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "malariasim-exp-late-mda"))}, simplify = F))
+  return(mod1_df)
+}
+
+
+df_var1_mda_late_b <- my_sim_mod3b()
+#saveRDS(df_var1_mda_late_b, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_late_b.rds")
+
+#baseline scenario: no interventions
+df_var_base <- df_var1 %>%
+  select(init_EIR, Q0)
+
+my_list_base <- list()
+for (i in seq_len(nrow(df_var_base))){
+  my_list_base[[i]] <- as.numeric(df_var_base[i,])
+}
+
+
+mod4b <-  function(data_in){
+  init_EIR_in <- data_in[1]
+  Q0_in <- data_in[2]
+  endec_mu_in <- data_in[3]
+  wane_in <- data_in[4]
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_malariasim_exp_decay.R", package = "ivRmectin"),
+    num_int = 1,
+    #ITN_IRS_on = net_seq[1], #nets on 1y into sim
+    #itn_cov = itn_cov_in,
+    #bites_Bed = bites_Bed_in,
+    #d_ITN0 = d_ITN0_in,
+    #r_ITN0 = r_ITN0_in,
+    #itn_half_life = itn_half_life_in,
+    Q0 = Q0_in,
+    init_EIR = init_EIR_in,
+    init_ft = 0,
+    #ivm parameters
+    ttt = ivm_parms3$ttt,
+    eff_len = ivm_parms3$eff_len,
+    haz = ivm_parms3$haz,
+    ivm_cov_par = 0,
+    ivm_min_age = ivm_parms3$ivm_min_age,
+    ivm_max_age = ivm_parms3$ivm_max_age,
+    IVRM_start = ivm_parms3$IVRM_start,
+    endec_mu = endec_mu_in,
+    wane = wane_in
+
+  )
+  return(output)
+}
+
+my_sim_mod4b <- function(){
+  mod1_out_list <- lapply(my_list_base, mod4b)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_var_base)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIRout, Ivtot, IVRM_sr, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "malariasim-exp-baseline"))}, simplify = F))
+  return(mod1_df)
+}
+
+
+df_baselineb <- my_sim_mod4b()
+
+df_baseline <- df_baseline %>%
+  mutate(bites_Bed = 0.95, ivm_cov = 0.7) #to help binding
+
+
+#nets only
+mod5b <-  function(data_in){
+  d_ITN0_in <- data_in[1]
+  itn_cov_in <- data_in[2]
+  init_EIR_in <- data_in[3]
+  bites_Bed_in <- data_in[4]
+  Q0_in <- data_in[5]
+  r_ITN0_in <- data_in[6]
+  itn_half_life_in <- data_in[7]
+  endec_mu_in <- data_in[8]
+  wane_in <- data_in[9]
+
+  output <- ivRmectin:::create_r_model(
+    odin_model_path = system.file("extdata/odin_model_malariasim_exp_decay.R", package = "ivRmectin"),
+    num_int = 2,
+    ITN_IRS_on = net_seq[1], #nets on 1y into sim
+    itn_cov = itn_cov_in,
+    bites_Bed = bites_Bed_in,
+    d_ITN0 = d_ITN0_in,
+    r_ITN0 = r_ITN0_in,
+    itn_half_life = itn_half_life_in,
+    Q0 = Q0_in,
+    init_EIR = init_EIR_in,
+    init_ft = 0,
+    #ivm parameters
+    ttt = ivm_parms3$ttt,
+    eff_len = ivm_parms3$eff_len,
+    haz = ivm_parms3$haz,
+    ivm_cov_par = 0, #no endectocide
+    ivm_min_age = ivm_parms3$ivm_min_age,
+    ivm_max_age = ivm_parms3$ivm_max_age,
+    IVRM_start = ivm_parms3$IVRM_start,
+    endec_mu = endec_mu_in,
+    wane = wane_in
+
+  )
+  return(output)
+}
+
+my_sim_mod5b <- function(){
+  mod1_out_list <- lapply(list_exp_decay, mod5b)
+  res_mod1_out <- lapply(mod1_out_list, runfun)
+  mod1_df <- do.call(rbind, sapply(1:(nrow(df_exp_decay)), function(x){
+    df <- as.data.frame(res_mod1_out[[x]])
+    df2 <-  as.data.frame(dplyr::select(.data = df, t, mu, mv, mvx_dead,Q0, ivm_cov, slide_prev0to5, EIRout, Ivtot, IVRM_sr, bites_Bed, clin_inc0to5))
+    df3 <- as.data.frame(dplyr::mutate(.data = df2, ref = x, model_type = "malariasim-exp-decay-ITN-int"))}, simplify = F))
+  return(mod1_df)
+}
+
+df_ITNb <- my_sim_mod5b()
+
+
+
+
+
+
 
 df_timings %>%
   filter(t == net_seq[2]) %>%

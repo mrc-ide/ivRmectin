@@ -167,9 +167,9 @@ pyr_param_list <- list()
 #pyr_param_df_crit <- expand.grid(dn0_med = pyr_only_d_ITN0, itn_cov = itn_cov_vector, bites_Bed = bites_Bed_vector,
  #                                init_EIR = init_EIR_vec, Q0 = Q0_vector)
 
-bb_res_grid <- expand.grid(bites_Bed = bites_Bed_vector, dn0_med = pyr_only_d_ITN0, init_EIR = init_EIR_vec, itn_cov = 0.8, Q0 = Q0_vector[4])
+bb_res_grid <- expand.grid(bites_Bed = bites_Bed_vector, dn0_med = pyr_only_d_ITN0, init_EIR = init_EIR_vec, itn_cov = 0.6, Q0 = Q0_vector[4])
 bb_cov_grid <- expand.grid(bites_Bed =bites_Bed_vector,dn0_med = df_pyr_only$dn0_med[1],init_EIR = init_EIR_vec,itn_cov = itn_cov_vector,  Q0 = Q0_vector[4])
-bb_Q0_grid <- expand.grid(bites_Bed = bites_Bed_vector, dn0_med = df_pyr_only$dn0_med[1], init_EIR = init_EIR_vec, itn_cov = 0.8, Q0 = Q0_vector)
+bb_Q0_grid <- expand.grid(bites_Bed = bites_Bed_vector, dn0_med = df_pyr_only$dn0_med[1], init_EIR = init_EIR_vec, itn_cov = 0.6, Q0 = Q0_vector)
 
 ##
 bb_res_df <- left_join(bb_res_grid,
@@ -265,7 +265,7 @@ bb_Q0_df <- left_join(bb_Q0_grid,
                        df_pyr_only %>% dplyr::select(dn0_med, rn0_med, gamman_med, resistance),
                        by = c("dn0_med")) %>%
   #mutate(net_type = "pyrethroid only") %>%
-  mutate(gamman_med = gamman_med*365, itn_cov = 0.8) %>%
+  mutate(gamman_med = gamman_med*365, itn_cov = 0.6) %>%
   rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
 
 

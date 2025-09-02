@@ -5,6 +5,8 @@ IVM_begin1 <- 365*6
 mda_int <- 30
 IVM_start <- c(IVM_begin1, IVM_begin1+mda_int, IVM_begin1+mda_int+mda_int)
 
+#from model_runs_odin_exp_decay.R
+
 
 df_mod1 <- readRDS("W:/endectocides-cluster/raw_outputs/odin-fits/output_mod1.rds")
 df_mod2 <- readRDS("W:/endectocides-cluster/raw_outputs/odin-fits/odin_exp_decay_compare.rds")
@@ -153,13 +155,14 @@ heatmap_data <- results_df %>%
                names_to = "measure",
                values_to = "value")
 
-head(results_df_long)
+#head(results_df_long)
 
 ggplot(heatmap_data, aes(x = factor(init_EIR), y = factor(bites_Bed), fill = value))+
   geom_tile()+
-  facet_grid(measure ~ split + d_ITN0 + itn_cov + Q0, scales = "free", labeller = label_both)+
+  facet_grid(measure ~ split + d_ITN0 + itn_cov, scales = "free", labeller = label_both)+
   scale_fill_gradient(low = "blue", high = "red", na.value = "grey50")+
   labs(fill = "value")
+
 require(ggpattern)
 
 results_df <- results_df %>%
@@ -522,4 +525,9 @@ results_df_no_int <- do.call(rbind, lapply(names(results_no_int), function(name)
 
 # View the results
 print(results_df_no_int)
+wanes <- unique(df_mod4$wane.x)
 
+df_mod4_out <- df_mod4 %>%
+  filter(init_EIR == 100 & endec_mu.y == 0.45 & wane.y == wanes[4])
+df_mod3_out <- df_mod3 %>%
+  filter(ivm_cov.x == 0.9, init_EIR == 100)
