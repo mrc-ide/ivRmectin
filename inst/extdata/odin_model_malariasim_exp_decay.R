@@ -663,7 +663,7 @@ output(w[]) <- TRUE
 output(fv) <- fv
 output(EIR[]) <- TRUE
 output(EIR_tot) <- EIR_tot
-output(EIRout) <-EIRout
+output(EIRout) <- EIRout
 output(itn_cov) <- itn_cov
 output(ivm_cov) <- ivm_cov
 output(FOIv) <- FOIv
