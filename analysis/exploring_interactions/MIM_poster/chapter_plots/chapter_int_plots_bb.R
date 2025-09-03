@@ -36,7 +36,7 @@ dynamics_plot_bb_odin <- df_bb_cov_plot %>%
   ggplot()+
   aes(x = (t-net_seq[3])/365, y = slide_prev0to5*100, lty = as.factor(int), col = as.factor(bites_Bed))+
   geom_line(size = 1)+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 16)+
   scale_linetype_manual(values = lines_int, name = "Intervention", labels = c("ITN", "ITN & endectocide"))+
   coord_cartesian(xlim = c(0,2.8), ylim = c(0,100))+
   annotate("segment",
@@ -67,7 +67,7 @@ dynamics_plot_bb_odin <- df_bb_cov_plot %>%
   theme(legend.position = c(0.7, 0.15), legend.direction = "vertical")+
   scale_x_continuous(breaks=seq(0, 10, 2))+
   guides(color = "none")+
-  labs(y = "Slide prevalence (%) \n in under 5-year-olds", x = "Time (years) since most recent ITN campaign")
+  labs(y = "Slide prevalence (%) \n in under 5-year-olds", x = "Time (years) since \n most recent ITN campaign")
 
 #read in the constant uptake models
 cons_uptake_bb_ITN_IVM <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/bb_IVM_ITN.rds")
@@ -122,20 +122,20 @@ EIR_stats <- with(mod_compare_EIR, cor(rel_diff_EIR_antag, rel_diff_EIR_cons)) #
 
 
 EIR_efficacy_plot <- ggplot(mod_compare_EIR, aes(x = rel_diff_EIR_antag, y = rel_diff_EIR_cons, fill = as.factor(bites_Bed)))+
-  coord_cartesian(xlim = c(0, 50), ylim = c(0, 50))+
+  coord_cartesian(xlim = c(40, 50), ylim = c(40, 50))+
   #xlim(0,50)+
   #ylim(0,50)
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 16)+
   geom_point(size = 3, shape = 21, colour = "black", stroke = 1) +  # black outline
   scale_fill_manual(values = bb_pal, labels = c("0.25", "0.5", "0.75", "0.9"),
                     name = expression(phi[italic(Bed)]))+
-  theme(legend.position = c(0.7, 0.2))+
-  labs(x = "Model A: Efficacy in reducing EIR (%)",y = "Model B: Efficacy in reducing EIR (%)")+
+  theme(legend.position = c(0.7, 0.3))+
+  labs(x = "Model A: Impact on EIR (%)",y = "Model B: Impact on EIR (%)")+
   annotate("text",
-           label = paste0("italic(r) == ", round(EIR_stats,2)),
+           label = paste0("italic(r) == ", round(EIR_stats,3)),
            parse = TRUE,
-           x = 15,
-           y = 40,
+           x = 42,
+           y = 47,
            col = "blue", size = 6, hjust = 0)+
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey40")  # y = x line
 
@@ -203,9 +203,9 @@ traits_avhc <- ggplot(traits_combo, aes(x = as.factor(bites_Bed), y = mean_inv_a
   geom_bar(stat = "identity", position = position_dodge(0.9), col = "black")+
   geom_errorbar(aes(ymin = mean_inv_avhc_lower, ymax = mean_inv_avhc_upper), position = position_dodge(0.9),
                 width = 0.4, size = 1)+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 16)+
   labs(x = "Proportion of bites in bed", y = "Average time between \n human bloodmeals (days)")+
-  theme(legend.position = c(0.5, 0.85))+
+  theme(legend.position = "bottom", legend.direction = "vertical")+
   scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake (model A)",
                                                     "Constant endectocide uptake (model B)"),
                     name = "Model assumption")+
@@ -216,7 +216,7 @@ traits_mort <- ggplot(traits_combo, aes(x = as.factor(bites_Bed), y = mean_inv_m
   geom_errorbar(aes(ymin = mean_inv_mort_lower, ymax = mean_inv_mort_upper),
                 position = position_dodge(0.9),
                 width = 0.4, size = 1)+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 16)+
   labs(x = "Proportion of bites in bed", y = "Average mosquito \n life expectancy (days)")+
   guides(fill = "none")+
   scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake",
@@ -267,7 +267,7 @@ output_bb_Q0 <- output_bb_Q0 %>%
 
 heatmap_Q0_bb_rel <- ggplot(output_bb_Q0, aes(x = as.factor(bites_Bed), y = as.factor(Q0), fill = rel_diff_IVM))+
   geom_tile()+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 16)+
   scale_fill_viridis_c(limits = common_limits_rel, name = "Cases averted (%) in \n under 5-year-olds due to endectocide")+
   xlab("Proportion of bites taken on people when they are in bed")+
   ylab("Human Blood Index")+
@@ -287,7 +287,11 @@ figure_1_odin_1 <- cowplot::plot_grid(dynamics_plot_bb_odin, EIR_efficacy_plot,
 figure_1_odin <- cowplot::plot_grid(figure_1_odin_1, heatmap_Q0_bb_rel,
                                     labels = c("", "E"))
 
+
+
 ggsave(figure_1_odin, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/figure_1_odin.pdf")
+ggsave(figure_1_odin, file = "../glasgow-visit/bionomics.png")
+
 #heatmap bites_Bed and cov
 
 output_bb_cov_ITN_IVM <- df_bb_cov_ITN_IVM %>%
