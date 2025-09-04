@@ -670,7 +670,7 @@ dynamics_timing_mda <- df_timings %>%
   aes(x = (t-net_seq[2])/365, y = slide_prev0to5*100, col = model_type)+
   geom_line(linewidth = 2)+
   scale_colour_manual(values = pals, name = "Scenario")+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 18)+
   coord_cartesian(ylim = c(0,100), xlim = c(0.15, 3))+
   xlab("Time (years) since last ITN campaign")+
   ylab("Slide prevalence (%) in children under 5-years-old")+
@@ -813,7 +813,7 @@ case_avert_plot <- output_impact_rel_baseline %>%
   scale_pattern_manual(values = c("none", "stripe"), name = "Efficacy measurement",
                        labels = c("Relative to baseline (no interventions) scenario",
                                   "Relative to scenario with historic use of ITNs"))+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 18)+
   coord_cartesian(ylim = c(0,100))+
   xlab("Timing of MDA in relation to ITN campaign")+
   ylab("Cases averted (%) in children under 5-years-old")+
@@ -825,5 +825,8 @@ case_avert_plot <- output_impact_rel_baseline %>%
 
 mda_timing_plot_fig2 <- cowplot::plot_grid(dynamics_timing_mda, case_avert_plot,
                    labels = c("A", "B"))
-ggsave(mda_timing_plot, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/mda_timing_plot_fig2.pdf")
 
+ggsave(mda_timing_plot_fig2, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/mda_timing_plot_fig2.pdf")
+
+
+ggsave(mda_timing_plot_fig2, file = "../glasgow-visit//mda_timing_plot_fig2.pdf")
