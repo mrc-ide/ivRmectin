@@ -342,6 +342,12 @@ my_sim_mod5 <- function(){
 df_ITN <- my_sim_mod5()
 saveRDS(df_ITN, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/df_ITN.rds")
 
+df_baseline <- readRDS("analysis/exploring_interactions/MIM_poster/chapter_plots/df_baseline.rds")
+df_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/chapter_plots/df_ITN.rds")
+df_var1_mda_early <- readRDS("analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_early.rds")
+df_var1_mda_medium<- readRDS("analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_medium.rds")
+df_var1_mda_late<- readRDS("analysis/exploring_interactions/MIM_poster/chapter_plots/df_var1_mda_late.rds")
+
 
 
 df_timings <- do.call("rbind", list(df_baseline, df_ITN, df_var1_mda_early, df_var1_mda_medium, df_var1_mda_late))
