@@ -289,6 +289,9 @@ figure_1_odin <- cowplot::plot_grid(figure_1_odin_1, heatmap_Q0_bb_rel,
 
 
 
+
+
+
 ggsave(figure_1_odin, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/figure_1_odin.pdf")
 ggsave(figure_1_odin, file = "../glasgow-visit/bionomics.png")
 
