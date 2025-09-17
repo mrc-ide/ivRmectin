@@ -627,7 +627,7 @@ mda_timing_df_long <- mda_timing_df %>%
 #plot comparing efficacy of the different models
 
 ggplot(mda_timing_df_long, aes(x = factor(timing_mda, levels = c("early", "medium", "late")), y  = eff, fill = as.factor(model)))+
-  geom_bar(stat = "identity", position = position_dodge())+
+  geom_bar(stat = "identity", position = position_dodge(), col = "black")+
   facet_wrap(vars(endpoint),
              labeller = labeller(endpoint = c(
                slide_prev0to5 = "Slide prevalence in under 5s",
