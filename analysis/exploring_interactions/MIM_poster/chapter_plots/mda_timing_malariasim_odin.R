@@ -1,3 +1,4 @@
+
 require(tidyverse)
 
 #working out the correct endec_mu and wane values for malariasim_exp_decay.R
@@ -627,13 +628,13 @@ mda_timing_df_long <- mda_timing_df %>%
 #plot comparing efficacy of the different models
 
 ggplot(mda_timing_df_long, aes(x = factor(timing_mda, levels = c("early", "medium", "late")), y  = eff, fill = as.factor(model)))+
-  geom_bar(stat = "identity", position = position_dodge(), col = "black")+
+  geom_bar(stat = "identity", position = position_dodge())+
   facet_wrap(vars(endpoint),
              labeller = labeller(endpoint = c(
                slide_prev0to5 = "Slide prevalence in under 5s",
                clin_inc0to5 =  "Clinical incidence in under 5s",
                Ivtot = "Infectious vectors"
-               )))+
+             )))+
   theme_bw()+
   labs(x = "Timing of MDA in relation to ITN campaign", y = "Efficacy (%)")+
   theme(legend.position = c(0.9, 0.8)) +
