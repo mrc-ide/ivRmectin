@@ -10,6 +10,8 @@ has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 <!-- badges: end -->
 
+This branch is maintained by Nilani Chandradeva at Imperial College London. Please get in touch with any questions.
+
 *ivRmectin* enables users to simulate models of malaria transmission
 with an explicit focus on exploring the impact of different
 endectocide-based interventions such as ivermectin. This builds on
