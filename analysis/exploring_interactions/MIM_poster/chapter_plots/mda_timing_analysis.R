@@ -20,7 +20,7 @@ IVM_start1 <- c(IVM_begin1, IVM_begin1+mda_int, IVM_begin1+mda_int+mda_int)
 IVM_begin2 <- net_seq[2] + 365
 IVM_start2 <- c(IVM_begin2, IVM_begin2+mda_int, IVM_begin2+mda_int+mda_int)
 
-#IVM starts 2.5 after last ITN campaign
+#IVM starts 2y after last ITN campaign
 IVM_begin3 <- net_seq[2] + (2*365)
 IVM_start3 <- c(IVM_begin3, IVM_begin3+mda_int, IVM_begin3+mda_int+mda_int)
 
