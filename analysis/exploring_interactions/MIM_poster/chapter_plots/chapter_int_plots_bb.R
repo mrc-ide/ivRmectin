@@ -8,7 +8,6 @@ df_bb_Q0_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/bb
 df_bb_cov_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/bb_cov_ITN.rds")
 df_bb_res_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/bb_res_ITN.rds")
 
-
 #initial setup
 itn_on <- 100 #introduce nets 100 days into simulation
 
@@ -234,7 +233,7 @@ df_bb_cov_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/b
 df_bb_res_ITN <- readRDS("analysis/exploring_interactions/MIM_poster/bites_Bed/bb_res_ITN.rds")
 
 #common limits for plots
-common_limits_rel <- c(20, 45)
+common_limits_rel <- c(10, 45)
 
 
 #heatmap bites_Bed and Q0
@@ -302,11 +301,19 @@ output_bb_cov_ITN_IVM <- df_bb_cov_ITN_IVM %>%
   mutate(clin_inc0to5 = clin_inc0to5*1000) %>% #make it per 1000 persons
   rename(clin_inc_bb_cov_ITN_IVM = clin_inc0to5)
 
+ggplot(output_bb_cov_ITN_IVM, aes(x = t, y = clin_inc_bb_cov_ITN_IVM))+
+  geom_line()+
+  facet_wrap(vars(bites_Bed, itn_cov))
+
 
 output_bb_cov_ITN <- df_bb_cov_ITN %>%
   select(t, bites_Bed, itn_cov, clin_inc0to5) %>%
   mutate(clin_inc0to5 = clin_inc0to5*1000) %>% #make it per 1000 persons
   rename(clin_inc_ITN = clin_inc0to5)
+
+ggplot(output_bb_cov_ITN, aes(x = t, y = clin_inc_ITN))+
+  geom_line()+
+  facet_wrap(vars(bites_Bed, itn_cov))
 
 output_bb_cov <- left_join(output_bb_cov_ITN, output_bb_cov_ITN_IVM)
 
@@ -320,12 +327,14 @@ output_bb_cov <- output_bb_cov %>%
 
 heatmap_bb_cov_rel <- ggplot(output_bb_cov, aes(x = as.factor(bites_Bed), y = as.factor(itn_cov*100), fill = rel_diff_IVM))+
   geom_tile()+
-  theme_bw()+
+  theme_bw(base_size = 14)+
   scale_fill_viridis_c(limits = common_limits_rel, name = "Cases averted (%) in \n under 5-year-olds due to endectocide")+
   xlab("Proportion of bites taken on people when they are in bed")+
   ylab("ITN coverage %")+
-  guides(fill = "none")+
-  geom_text(aes(label = paste0(round(rel_diff_IVM, 1), "%")),col = "white", size = 5)
+  geom_text(aes(label = paste0(round(rel_diff_IVM, 1), "%")),col = "white", size = 5)+
+  theme(legend.position = "bottom")
+
+ggsave(heatmap_bb_cov_rel, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_cov_rel.pdf")
 
 
 #heatmap bites_bed and res
@@ -361,7 +370,7 @@ output_bb_res <- left_join(output_bb_res, res_bb_df1)
 
 heatmap_bb_res_rel <- ggplot(output_bb_res, aes(x = as.factor(bites_Bed), y = as.factor(resistance*100), fill = rel_diff_IVM))+
   geom_tile()+
-  theme_bw()+
+  theme_bw(base_size = 14)+
   scale_fill_viridis_c(limits = common_limits_rel, name = "Cases averted (%) in \n under 5-year-olds due to endectocide")+
   xlab("Proportion of bites taken on people when they are in bed")+
   ylab("Phenotypic resistance (%)")+
@@ -369,3 +378,4 @@ heatmap_bb_res_rel <- ggplot(output_bb_res, aes(x = as.factor(bites_Bed), y = as
         legend.direction = "horizontal")+
   geom_text(aes(label = paste0(round(rel_diff_IVM, 1), "%")),col = "white", size = 5)
 
+ggsave(heatmap_bb_res_rel, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_res_rel.pdf")
