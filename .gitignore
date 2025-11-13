@@ -1,4 +1,5 @@
 .Rproj.user
+.pdf
 .Rhistory
 .RData
 .Ruserdata
@@ -6,4 +7,16 @@
 .xlsx
 plots/*
 analysis/biting_LLINS/*
-analysis/exploring_interactions/*
+data/*
+# Ignore everything
+*
+# Allow these directories (so Git can descend into them)
+!inst
+!analysis/
+!analysis/exploring_interactions/
+!analysis/exploring_interactions/MIM_poster/
+# Allow all files inside MIM_poster
+!analysis/exploring_interactions/MIM_poster/**
+# But still ignore .rds files there
+# But ignore all .rds files anywhere inside MIM_poster
+analysis/exploring_interactions/MIM_poster/**/*.rds
