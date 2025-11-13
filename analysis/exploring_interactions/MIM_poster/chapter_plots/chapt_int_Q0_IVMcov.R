@@ -82,6 +82,10 @@ Q0_ivm_df <- left_join(Q0_ivm_grid,
   mutate(gamman_med = gamman_med*365) %>%
   rename(d_ITN0 = dn0_med, r_ITN0 = rn0_med, itn_half_life = gamman_med)
 
+saveRDS(Q0_ivm_df, file = "C:/Users/nc1115/Documents/github/ivRmectin/analysis/exploring_interactions/MIM_poster/chapter_plots//Q0_ivm_cov.rds")
+saveRDS(Q0_ivm_df, file = "W:/endectocides-cluster/data/Q0_ivm_cov.rds")
+
+
 Q0_ivm_list <- list()
 for (i in seq_len(nrow(Q0_ivm_df))){
   Q0_ivm_list[[i]] <- as.numeric(Q0_ivm_df[i,])
