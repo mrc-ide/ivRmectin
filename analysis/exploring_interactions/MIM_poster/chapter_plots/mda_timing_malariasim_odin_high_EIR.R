@@ -723,8 +723,8 @@ sensitivity_analysis_model_fits <- ggplot(mda_timing_df_long,
                  Ivtot         = "Reduction (%) in \n infectious vectors"
                ),
                EIR = c(
-                 low  = "Low transmission setting",
-                 high = "High transmission setting"
+                 low  = "Moderate \n transmission setting",
+                 high = "High \n transmission setting"
                )
              )) +
   theme_bw(base_size = 14) +
