@@ -20,3 +20,5 @@ data/*
 # But still ignore .rds files there
 # But ignore all .rds files anywhere inside MIM_poster
 analysis/exploring_interactions/MIM_poster/**/*.rds
+#ignore the pdfs
+analysis/exploring_interactions/MIM_poster/**/*.pdf
