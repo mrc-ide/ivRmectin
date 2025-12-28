@@ -294,6 +294,25 @@ figure_1_odin <- cowplot::plot_grid(figure_1_odin_1, heatmap_Q0_bb_rel,
 ggsave(figure_1_odin, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/figure_1_odin.pdf")
 ggsave(figure_1_odin, file = "../glasgow-visit/bionomics.png")
 
+common_limits_abs <- c(50,350)
+
+heatmap_QO_bb_abs <- ggplot(output_bb_Q0, aes(x = as.factor(bites_Bed), y = as.factor(Q0), fill = abs_diff_IVM))+
+  geom_tile()+
+  theme_bw(base_size = 14)+
+  scale_fill_fermenter(limits = common_limits_abs, name = "Absolute reduction in cases in \n under 5-year-olds due to endectocide")+
+  xlab("Proportion of bites taken on people when they are in bed")+
+  ylab("Human Blood Index")+
+  #guides(fill = "none")+
+  #geom_text(aes(label = species), parse = TRUE, col = "white", size = 5)+
+  geom_text(aes(label = paste0(round(abs_diff_IVM))),
+            col = "black", size = 5)+
+  theme(legend.position = "bottom",
+        legend.direction = "vertical")
+
+ggsave(heatmap_QO_bb_abs, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_abs_Q0_bb.pdf")
+
+
+
 #heatmap bites_Bed and cov
 
 output_bb_cov_ITN_IVM <- df_bb_cov_ITN_IVM %>%
@@ -335,6 +354,26 @@ heatmap_bb_cov_rel <- ggplot(output_bb_cov, aes(x = as.factor(bites_Bed), y = as
   theme(legend.position = "bottom")
 
 ggsave(heatmap_bb_cov_rel, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_cov_rel.pdf")
+
+heatmap_bb_cov_abs <- ggplot(output_bb_cov, aes(x = as.factor(bites_Bed),
+                                                y = as.factor(itn_cov*100),
+                                                fill = abs_diff_IVM))+
+  geom_tile()+
+  theme_bw(base_size = 14)+
+  scale_fill_fermenter(limits = common_limits_abs, name = "Absolute reduction in cases in \n under 5-year-olds due to endectocide")+
+  xlab("Proportion of bites taken on people when they are in bed")+
+  ylab("ITN coverage %")+
+  #guides(fill = "none")+
+  geom_text(aes(label = paste0(round(abs_diff_IVM))),
+            col = "black", size = 5)+
+  theme(legend.position = "bottom",
+        legend.direction = "vertical")
+
+heatmap_bb_cov <- cowplot::plot_grid(heatmap_bb_cov_rel, heatmap_bb_cov_abs,
+                                     ncol = 2, labels = c("A", "B"))
+
+ggsave(heatmap_bb_cov, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_cov.pdf")
+
 
 
 #heatmap bites_bed and res
@@ -379,3 +418,19 @@ heatmap_bb_res_rel <- ggplot(output_bb_res, aes(x = as.factor(bites_Bed), y = as
   geom_text(aes(label = paste0(round(rel_diff_IVM, 1), "%")),col = "white", size = 5)
 
 ggsave(heatmap_bb_res_rel, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_res_rel.pdf")
+
+heatmap_bb_res_abs <- ggplot(output_bb_res, aes(x = as.factor(bites_Bed), y = as.factor(resistance*100),
+                                                fill = abs_diff_IVM))+
+  geom_tile()+
+  theme_bw(base_size = 14)+
+  scale_fill_fermenter(limits = common_limits_abs, name = "Absolute reduction in cases in \n under 5-year-olds due to endectocide")+
+  xlab("Proportion of bites taken on people when they are in bed")+
+  ylab("Phenotypic resistance (%)")+
+  theme(legend.position = "bottom",
+        legend.direction = "vertical")+
+  geom_text(aes(label = paste0(round(abs_diff_IVM))),col = "black", size = 5)
+
+heatmap_bb_res <- cowplot::plot_grid(heatmap_bb_res_rel, heatmap_bb_res_abs,
+                                     ncol = 2, labels = c("A", "B"))
+
+ggsave(heatmap_bb_res, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_bb_res.pdf")
