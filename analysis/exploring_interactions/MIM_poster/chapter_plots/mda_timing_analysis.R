@@ -350,7 +350,6 @@ df_var1_mda_late<- readRDS("analysis/exploring_interactions/MIM_poster/chapter_p
 
 
 
-df_timings <- do.call("rbind", list(df_baseline, df_ITN, df_var1_mda_early, df_var1_mda_medium, df_var1_mda_late))
 
 
 #MDA timing analysis in odin_model_malariasim_exp_decay.R####
@@ -594,6 +593,7 @@ df_baselineb <- my_sim_mod4b()
 df_baseline <- df_baseline %>%
   mutate(bites_Bed = 0.95, ivm_cov = 0.7) #to help binding
 
+df_timings <- do.call("rbind", list(df_baseline, df_ITN, df_var1_mda_early, df_var1_mda_medium, df_var1_mda_late))
 
 #nets only
 mod5b <-  function(data_in){
