@@ -37,6 +37,8 @@ output_Q0 <- output_Q0 %>%
                              TRUE ~ ivm_cov_in))
 
 common_limits_rel <- c(10, 45)
+common_limits_abs <- c(50,600)
+
 
 heatmap_Q0_ivm_rel <- ggplot(output_Q0, aes(x = as.factor(Q0), y = as.factor(ivm_cov*100), fill = rel_diff_IVM))+
   geom_tile()+
@@ -50,3 +52,22 @@ heatmap_Q0_ivm_rel <- ggplot(output_Q0, aes(x = as.factor(Q0), y = as.factor(ivm
             col = "white", size = 5)+
   theme(legend.position = "bottom")
 ggsave(heatmap_Q0_ivm_rel, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_Q0_ivm_cov_rel.pdf")
+
+
+heatmap_Q0_ivm_abs <- ggplot(output_Q0, aes(x = as.factor(Q0), y = as.factor(ivm_cov*100), fill = abs_diff_IVM))+
+  geom_tile()+
+  theme_bw(base_size = 16)+
+  scale_fill_fermenter(limits = common_limits_abs, name = "Absolute reduction in cases in \n under 5-year-olds due to endectocide")+
+  xlab("Human Blood Index")+
+  ylab("Ivermectin coverage (%)")+
+  #guides(fill = "none")+
+  #geom_text(aes(label = species), parse = TRUE, col = "white", size = 5)+
+  geom_text(aes(label = paste0(round(abs_diff_IVM))),
+            col = "black", size = 5)+
+  theme(legend.position = "bottom",
+        legend.direction = "vertical")
+
+heatmap_Q0_ivm <- cowplot::plot_grid(heatmap_Q0_ivm_rel, heatmap_Q0_ivm_abs,
+                                     labels = c("A", "B"))
+
+ggsave(heatmap_Q0_ivm, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/heatmap_Q0_ivm_cov.pdf")
