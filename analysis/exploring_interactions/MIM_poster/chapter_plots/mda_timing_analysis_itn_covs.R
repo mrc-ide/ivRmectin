@@ -687,7 +687,7 @@ dynamics_timing_mda <- df_timings %>%
          ref = factor(
            ref,
            levels = c(4, 2, 6),   # order facets
-           labels = c("30% ITN cov", "50% ITN cov", "70% ITN cov") # custom labels
+           labels = c("30% ITN coverage", "50% ITN coverage", "70% ITN coverage") # custom labels
          )) %>%
   ggplot()+
   aes(x = (t-net_seq[1])/365, y = slide_prev0to5*100, col = model_type)+
@@ -852,7 +852,7 @@ case_avert_plot <- output_impact_rel_baseline %>%
     ref = factor(
       ref,
       levels = c(4, 2, 6),   # order facets
-      labels = c("30% ITN cov", "50% ITN cov", "70% ITN cov") # custom labels
+      labels = c("30% ITN coverage", "50% ITN coverage", "70% ITN coverage") # custom labels
     )
   ) %>%
   ggplot() +
