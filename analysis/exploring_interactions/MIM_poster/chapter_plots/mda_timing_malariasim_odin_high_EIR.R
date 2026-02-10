@@ -181,15 +181,15 @@ mod_pals <-  c('#1b9e77', '#d95f02')
 #early
 plots_early <- lapply(vars, function(v) {
   if (v == "EIRout") {
-    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
-      geom_line(aes(col =mod_pals[1])) +
+    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[1]) +
+      geom_line(aes(col = mod_pals[1])) +
       geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
       labs(y = "Daily EIR (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
       coord_cartesian(xlim = c(-0.5, 7.5))
 
   } else if (v == "clin_inc0to5") {
-    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
+    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[1]) +
       geom_line(aes(col =mod_pals[1])) +
       geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
       labs(y = "Clinical incidence \n in under 5-year-olds (per 1000 persons)", x = "Time since first ITN campaign (years)") +
@@ -197,7 +197,7 @@ plots_early <- lapply(vars, function(v) {
       coord_cartesian(xlim = c(-0.5, 7.5))
 
   } else if (v == "slide_prev0to5") {
-    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100)) +
+    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100), col = mod_pals[1]) +
       geom_line(aes(col =mod_pals[1])) +
       geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
       labs(y = "Slide prevalence (%) in \n under 5-year-olds", x = "Time since first ITN campaign (years)") +
@@ -205,7 +205,7 @@ plots_early <- lapply(vars, function(v) {
       coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))
 
   } else if (v == "Ivtot") {
-    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
+    p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = mod_pals[1]) +
       geom_line(aes(col =mod_pals[1])) +
       geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
       labs(y = "Infectious vectors", x = "Time since first ITN campaign (years)") +
