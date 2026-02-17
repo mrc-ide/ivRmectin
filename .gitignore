@@ -13,6 +13,7 @@ data/*
 # Allow these directories (so Git can descend into them)
 !inst
 !analysis/
+!analysis/IVER_ONE/
 !analysis/exploring_interactions/
 !analysis/exploring_interactions/MIM_poster/
 # Allow all files inside MIM_poster
