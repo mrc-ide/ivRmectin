@@ -14,6 +14,7 @@ data/*
 !inst
 !analysis/
 !analysis/IVER_ONE/
+!analysis/IVER_ONE/**
 !analysis/exploring_interactions/
 !analysis/exploring_interactions/MIM_poster/
 # Allow all files inside MIM_poster
