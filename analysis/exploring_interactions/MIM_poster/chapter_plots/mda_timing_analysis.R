@@ -668,7 +668,9 @@ dynamics_timing_mda <- df_timings %>%
                                         "Ivermectin MDA 1y after ITN campaign", "Ivermectin MDA 2y after ITN campaign"))) %>%
   ggplot()+
   aes(x = (t-net_seq[2])/365, y = slide_prev0to5*100, col = model_type)+
-  geom_line(linewidth = 2)+
+  #geom_line(linewidth = 2)+
+  geom_line(aes(alpha = model_type == "ITN only"), linewidth = 2) +
+  scale_alpha_manual(values = c(0.6, 0.8), guide = "none")+
   scale_colour_manual(values = pals, name = "Scenario")+
   theme_bw(base_size = 18)+
   coord_cartesian(ylim = c(0,100), xlim = c(0.15, 3))+

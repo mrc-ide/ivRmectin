@@ -800,3 +800,5 @@ df_site_endec <- left_join(df_params_all, df_ivm_params, by = "site") %>%
     TRUE ~ 60
   ))
 saveRDS(df_site_endec, file = "analysis/IVER_ONE/output/df_site_endec.rds")
+
+df_site_endec <-readRDS(file = "analysis/IVER_ONE/output/df_site_endec.rds")

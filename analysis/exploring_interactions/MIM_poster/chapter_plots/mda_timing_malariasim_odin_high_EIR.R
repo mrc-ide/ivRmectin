@@ -182,44 +182,64 @@ mod_pals <-  c('#1b9e77', '#d95f02')
 plots_early <- lapply(vars, function(v) {
   if (v == "EIRout") {
     p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[1]) +
-      geom_line(aes(col = mod_pals[1])) +
-      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Daily EIR (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      theme(legend.position = c(0.4, 0.6))
 
   } else if (v == "clin_inc0to5") {
     p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[1]) +
-      geom_line(aes(col =mod_pals[1])) +
-      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Clinical incidence \n in under 5-year-olds (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      guides(col = "none")
 
   } else if (v == "slide_prev0to5") {
     p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100), col = mod_pals[1]) +
-      geom_line(aes(col =mod_pals[1])) +
-      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 100, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Slide prevalence (%) in \n under 5-year-olds", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))+
+      guides(col = "none")
 
   } else if (v == "Ivtot") {
     p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = mod_pals[1]) +
-      geom_line(aes(col =mod_pals[1])) +
-      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = mod_pals[2])) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Infectious vectors", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      guides(col = "none")
 
   } else {
     # fallback (shouldn’t really happen here)
     p <- ggplot(high_eir_odin_mda_early, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
-      geom_line() +
-      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = "red") +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_early_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(title = v) +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      guides(col = "none")
   }
   p
 })
@@ -234,44 +254,64 @@ ggsave(early_fits,file = "analysis/exploring_interactions/MIM_poster/chapter_plo
 plots_medium <- lapply(vars, function(v) {
   if (v == "EIRout") {
     p <- ggplot(high_eir_odin_mda_medium, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
-      geom_line(col =mod_pals[1]) +
-      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Daily EIR (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      theme(legend.position = c(0.4, 0.6))
 
   } else if (v == "clin_inc0to5") {
     p <- ggplot(high_eir_odin_mda_medium, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Clinical incidence \n in under 5-year-olds (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")+
       coord_cartesian(xlim = c(-0.5, 7.5))
 
   } else if (v == "slide_prev0to5") {
     p <- ggplot(high_eir_odin_mda_medium, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100)) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Slide prevalence (%) in \n under 5-year-olds", x = "Time since first ITN campaign (years)") +
       theme_bw() +
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")+
       coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))
 
   } else if (v == "Ivtot") {
     p <- ggplot(high_eir_odin_mda_medium, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Infectious vectors", x = "Time since first ITN campaign (years)") +
       theme_bw() +
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")+
       coord_cartesian(xlim = c(-0.5, 7.5))
 
   } else {
     # fallback (shouldn’t really happen here)
     p <- ggplot(high_eir_odin_mda_medium, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
-      geom_line() +
-      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = "red") +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_medium_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(title = v) +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")
   }
   p
 })
@@ -288,44 +328,64 @@ ggsave(medium_fits,file = "analysis/exploring_interactions/MIM_poster/chapter_pl
 plots_late <- lapply(vars, function(v) {
   if (v == "EIRout") {
     p <- ggplot(high_eir_odin_mda_late, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
-      geom_line(col =mod_pals[1]) +
-      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Daily EIR (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      theme(legend.position = c(0.4, 0.6))
 
   } else if (v == "clin_inc0to5") {
     p <- ggplot(high_eir_odin_mda_late, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000)) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]] * 1000, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Clinical incidence \n in under 5-year-olds (per 1000 persons)", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")
 
   } else if (v == "slide_prev0to5") {
     p <- ggplot(high_eir_odin_mda_late, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100)) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]*100, col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Slide prevalence (%) in \n under 5-year-olds", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))
+      coord_cartesian(xlim = c(-0.5, 7.5), ylim = c(0,80))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")
 
   } else if (v == "Ivtot") {
     p <- ggplot(high_eir_odin_mda_late, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
-      geom_line(col = mod_pals[1]) +
-      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = mod_pals[2]) +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(y = "Infectious vectors", x = "Time since first ITN campaign (years)") +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")
 
   } else {
     # fallback (shouldn’t really happen here)
     p <- ggplot(high_eir_odin_mda_late, aes(x = (t-net_seq[1])/365, y = .data[[v]])) +
-      geom_line() +
-      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]]), col = "red") +
+      geom_line(aes(col = "Model B1"), alpha = 0.5, linewidth = 1) +
+      geom_line(data = msim_late_bestfit, aes(x = (t-net_seq[1])/365, y = .data[[v]], col = "Model C"), alpha = 0.7, linewidth = 0.8) +
       labs(title = v) +
       theme_bw() +
-      coord_cartesian(xlim = c(-0.5, 7.5))
+      coord_cartesian(xlim = c(-0.5, 7.5))+
+      scale_colour_manual(values = c("Model B1" = mod_pals[1],
+                                     "Model C" = mod_pals[2]),
+                          name = "Model")+
+      guides(col = "none")
   }
   p
 })
@@ -733,6 +793,6 @@ sensitivity_analysis_model_fits <- ggplot(mda_timing_df_long,
   ylim(0, 100) +
   scale_fill_manual(name = "Model",
                     values = c('#1b9e77', '#d95f02'),
-                    labels = c("Model A", "Model C"))
+                    labels = c("Model B1", "Model C"))
 
 ggsave(sensitivity_analysis_model_fits, file = "analysis/exploring_interactions/MIM_poster/chapter_plots/odin_sensitivity_plots_mda_timing_eir.pdf")

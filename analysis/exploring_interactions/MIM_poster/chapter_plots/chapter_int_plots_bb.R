@@ -126,7 +126,7 @@ EIR_efficacy_plot <- ggplot(mod_compare_EIR, aes(x = rel_diff_EIR_antag, y = rel
   #ylim(0,50)
   theme_bw(base_size = 16)+
   geom_point(size = 3, shape = 21, colour = "black", stroke = 1) +  # black outline
-  scale_fill_manual(values = bb_pal, labels = c("0.25", "0.5", "0.75", "0.9"),
+  scale_fill_manual(values = bb_pal, labels = bb_labs,
                     name = expression(phi[italic(Bed)]))+
   theme(legend.position = c(0.7, 0.3))+
   labs(x = "Model A: Impact on EIR (%)",y = "Model B: Impact on EIR (%)")+
@@ -203,10 +203,10 @@ traits_avhc <- ggplot(traits_combo, aes(x = as.factor(bites_Bed), y = mean_inv_a
   geom_errorbar(aes(ymin = mean_inv_avhc_lower, ymax = mean_inv_avhc_upper), position = position_dodge(0.9),
                 width = 0.4, size = 1)+
   theme_bw(base_size = 16)+
-  labs(x = "Proportion of bites in bed", y = "Average time between \n human bloodmeals (days)")+
-  theme(legend.position = "bottom", legend.direction = "vertical")+
-  scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake (model A)",
-                                                    "Constant endectocide uptake (model B)"),
+  labs(x = "Proportion of bites in bed", y = "Av. time between \n bloodmeals on a potentially \n treated host (days)")+
+  guides(fill = "none")+
+  scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake (model B1)",
+                                                    "Constant endectocide uptake (model B2)"),
                     name = "Model assumption")+
   coord_cartesian(ylim = c(0,30))
 
@@ -216,10 +216,12 @@ traits_mort <- ggplot(traits_combo, aes(x = as.factor(bites_Bed), y = mean_inv_m
                 position = position_dodge(0.9),
                 width = 0.4, size = 1)+
   theme_bw(base_size = 16)+
-  labs(x = "Proportion of bites in bed", y = "Average mosquito \n life expectancy (days)")+
-  guides(fill = "none")+
-  scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake",
-                                                    "Constant endectocide uptake"))
+  labs(x = "Proportion of bites in bed", y = "Av. mosquito \n life expectancy (days)")+
+  #guides(fill = "none")+
+  theme(legend.position = "bottom", legend.direction = "vertical")+
+  scale_fill_manual(values = model_pals, labels = c("ITN-mediated endectocide uptake (model B1)",
+                                                    "Constant endectocide uptake (model B2)"),
+                    name = "Model assumption")
 
 
 #heatmaps####

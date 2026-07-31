@@ -691,7 +691,9 @@ dynamics_timing_mda <- df_timings %>%
          )) %>%
   ggplot()+
   aes(x = (t-net_seq[1])/365, y = slide_prev0to5*100, col = model_type)+
-  geom_line(linewidth = 2)+
+  #geom_line(linewidth = 2)+
+  geom_line(aes(alpha = model_type == "ITN only"), linewidth = 2) +
+  scale_alpha_manual(values = c(0.6, 0.8), guide = "none")+
   facet_wrap(vars(ref))+
   scale_colour_manual(values = pals, name = "Scenario")+
   theme_bw(base_size = 14)+
