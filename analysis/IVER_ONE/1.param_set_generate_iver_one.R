@@ -2,7 +2,16 @@
 
 #script for running endec_mosq_model
 # Loading the ivRmectin package
+
+#may need to install devtools
+#install.packages("devtools)
+
 devtools::load_all()
+
+#may need to run this first if does not work
+#unlink("src/*.o")
+#unlink("src/*.so")
+
 library(ggplot2)
 library(gridExtra)
 library(RColorBrewer)
